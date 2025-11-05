@@ -1,0 +1,24 @@
+
+evc:
+  E_init: 0.5
+  loss: 0.02
+  K: 0.45
+  clamp_low: 0.0
+  clamp_high: 1.5
+  overheat_threshold: 1.1
+  fear_threshold: 0.25
+  cooldown_margin: 0.05
+
+tone_map:
+  calm: "เป็นทางการ สุภาพ ชัดเจน"
+  focus: "จริงจัง ตรงประเด็น มีโครงสร้าง"
+  overheat: "ใจเย็น ระมัดระวัง ลดความมั่นใจ"
+  fear: "ให้กำลังใจ อธิบายช้าๆ ชัดๆ"
+  cooldown: "สุภาพ สรุปสั้น เดินหน้าทีละขั้น"
+
+model:
+  default_model: "gpt-4o-mini"
+  max_tokens: 512
+
+memory:
+  path: "session_memory.json"
