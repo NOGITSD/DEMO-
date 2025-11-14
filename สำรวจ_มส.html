@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตัวประมวลผลไฟล์ข้อมูลนักเรียน</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        /* Modern UI variables and optimized animations */
+        :root {
+            --primary-1: #5b6ef8;
+            --primary-2: #8a63e6;
+            --accent: #22c1c3;
+            --muted: #6b7280;
+            --bg-grad-a: linear-gradient(135deg, rgba(91,110,248,0.06), rgba(138,99,230,0.05));
+            --glass: rgba(255,255,255,0.72);
+            --card-shadow: 0 10px 30px rgba(22,27,41,0.06);
+            --hover-shadow: 0 15px 40px rgba(22,27,41,0.1);
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --glass-blur: 8px;
+            --transition-fast: 200ms ease;
+            --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --lighter-bg: rgba(255, 255, 255, 0.95);
+            --text-muted: #666;
+            
+            /* Performance optimizations */
+            --use-transform: translateZ(0);
+            --use-gpu: translate3d(0,0,0);
+            --backface: backface-visibility: hidden;
+            --perspective: perspective(1000px);
+        }
+
+        @keyframes fadeInUpSlight {
+            from { opacity: 0; transform: translateY(10px) scale(0.995); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes pulseSoft {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideInStagger {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmerX {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(6px); }
+        }
+
+        @keyframes floatSoft {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(91,110,248,0); }
+            50% { box-shadow: 0 0 20px rgba(91,110,248,0.2); }
+        }
+
+        @keyframes successScale {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+            background: linear-gradient(180deg, #f6f8ff 0%, #f3f6fb 60%) fixed;
+            color: #111827;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 28px;
+            contain: content;
+            text-rendering: optimizeLegibility;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--glass);
+            backdrop-filter: blur(var(--glass-blur));
+            border-radius: var(--radius-lg);
+            box-shadow: var(--card-shadow);
+            padding: 28px;
+            animation: fadeInUpSlight 360ms ease-out;
+            border: 1px solid rgba(99,102,241,0.06);
+            transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+            transform: var(--use-transform);
+            will-change: transform, box-shadow;
+            contain: layout style paint;
+        }
+
+        .container:hover {
+            transform: translateY(-2px) var(--use-transform);
+            box-shadow: var(--hover-shadow);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin: 0 0 6px 0;
+            color: #0f172a;
+            letter-spacing: -0.2px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+            padding: 18px;
+            border-radius: 12px;
+            background: var(--bg-grad-a);
+            border: 2px dashed rgba(99,102,241,0.15);
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+        }
+
+        .upload-area:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--hover-shadow);
+            border-color: var(--primary-1);
+            background: linear-gradient(135deg, rgba(91,110,248,0.08), rgba(138,99,230,0.07));
+        }
+
+        .upload-area:hover::before {
+            transform: translateX(100%);
+        }
+
+        .upload-area.drag-over {
+            border-color: var(--primary-1);
+            transform: scale(1.02);
+            animation: glowPulse 1.5s infinite;
+        }
+
+        .upload-icon {
+            width: 64px; height: 64px; border-radius: 12px;
+            display: grid; place-items: center; font-size: 28px;
+            background: linear-gradient(135deg, var(--primary-1), var(--primary-2));
+            color: white; 
+            box-shadow: 0 8px 20px rgba(91,110,248,0.18);
+            transition: all var(--transition-smooth);
+            animation: floatSoft 3s ease-in-out infinite;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: scale(1.05) rotate(-5deg);
+            box-shadow: 0 12px 25px rgba(91,110,248,0.25);
+        }
+
+        .upload-text { 
+            font-weight: 700; 
+            font-size: 16px; 
+            color: #0b1220;
+            transition: color var(--transition-fast);
+        }
+
+        .upload-area:hover .upload-text {
+            color: var(--primary-1);
+        }
+
+        .upload-hint { 
+            color: var(--muted); 
+            font-size: 13px;
+            transition: color var(--transition-fast);
+        }
+
+        .upload-area:hover .upload-hint {
+            color: var(--primary-2);
+        }
+
+        #fileInput { display: none; }
+
+        .actions { text-align: center; margin: 18px 0 8px; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: linear-gradient(90deg, var(--primary-1), var(--primary-2));
+            color: white; padding: 12px 24px; border-radius: 999px; border: none;
+            font-weight: 700; cursor: pointer; 
+            transition: all var(--transition-smooth);
+            box-shadow: 0 6px 18px rgba(99,102,241,0.14);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99,102,241,0.25);
+        }
+
+        .btn:hover::before {
+            transform: translateX(100%);
+            transition: transform 0.8s ease;
+        }
+
+        .btn.secondary { 
+            background: white; 
+            color: #374151; 
+            box-shadow: 0 6px 16px rgba(15,23,42,0.06); 
+            border: 1px solid rgba(15,23,42,0.04);
+        }
+
+        .btn.secondary:hover {
+            background: var(--bg-grad-a);
+            color: var(--primary-1);
+            border-color: var(--primary-1);
+        }
+
+        .btn:active { 
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 2px 8px rgba(99,102,241,0.1);
+        }
+
+        .btn:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+            transform: none;
+            pointer-events: none;
+        }
+
+        .progress { 
+            height: 12px; 
+            background: #eef2ff; 
+            border-radius: 999px; 
+            overflow: hidden; 
+            margin: 16px 0; 
+            display: none;
+            position: relative;
+        }
+
+        .progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmerX 2s infinite linear;
+            background-size: 200% 100%;
+        }
+
+        .progress-bar { 
+            height: 100%; 
+            width: 0%; 
+            background: linear-gradient(90deg, var(--primary-1), var(--primary-2)); 
+            transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .stats { 
+            display: flex; 
+            gap: 16px; 
+            margin: 24px 0; 
+            flex-wrap: wrap; 
+        }
+
+        .stat-item { 
+            background: white; 
+            padding: 18px 24px; 
+            border-radius: 16px; 
+            min-width: 150px;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-smooth);
+            border: 1px solid rgba(99,102,241,0.06);
+            animation: fadeInScale 0.4s ease-out both;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--hover-shadow);
+            border-color: rgba(99,102,241,0.12);
+        }
+
+        .stat-number { 
+            font-size: 24px; 
+            font-weight: 800; 
+            color: var(--primary-1);
+            transition: all var(--transition-fast);
+            background: linear-gradient(90deg, var(--primary-1), var(--primary-2));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-item:hover .stat-number {
+            transform: scale(1.05);
+        }
+
+        .stat-label { 
+            color: var(--muted); 
+            font-size: 14px;
+            margin-top: 4px;
+            transition: color var(--transition-fast);
+        }
+
+        .stat-item:hover .stat-label {
+            color: var(--primary-2);
+        }
+
+        .result-container { margin-top: 18px; display: none; }
+
+        .grade-header { margin-top: 18px; padding: 12px 14px; border-radius: 10px; background: linear-gradient(90deg, rgba(91,110,248,0.08), rgba(138,99,230,0.06)); }
+        .grade-header h2 { margin:0; font-size: 18px; color: #111827; }
+
+        .student-section { 
+            margin: 18px 0; 
+            background: white; 
+            border-radius: var(--radius-lg);
+            padding: 20px; 
+            box-shadow: var(--card-shadow);
+            animation: slideInStagger 400ms ease both;
+            border: 1px solid rgba(99,102,241,0.06);
+            transition: all var(--transition-smooth);
+        }
+
+        .student-section:hover {
+            transform: translateY(-2px) scale(1.002);
+            box-shadow: var(--hover-shadow);
+            border-color: rgba(99,102,241,0.12);
+        }
+
+        .student-name { 
+            font-weight: 800; 
+            color: #0b1220; 
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .student-name::before {
+            content: '👤';
+            font-size: 1.2em;
+            animation: floatSoft 3s infinite ease-in-out;
+        }
+
+        .subject-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 13px;
+            border: 1px solid #e5e7eb;
+            background: white;
+        }
+        
+        .subject-table th { 
+            text-align: left; 
+            padding: 12px; 
+            background: linear-gradient(90deg, rgba(91,110,248,0.9), rgba(138,99,230,0.9)); 
+            color: white; 
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .subject-table td { 
+            padding: 10px 12px; 
+            border: 1px solid #e5e7eb;
+        }
+
+        .excel-grid {
+            margin-top: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: white;
+        }
+
+        .excel-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            gap: 12px;
+        }
+
+        .excel-title {
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+
+        .excel-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .excel-button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #475569;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .excel-button:hover {
+            border-color: var(--primary-1);
+            color: var(--primary-1);
+            background: rgba(91,110,248,0.04);
+        }
+
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .excel-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+            text-align: left;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .excel-table td {
+            padding: 10px 16px;
+            border: 1px solid #e5e7eb;
+            transition: background var(--transition-fast);
+        }
+
+        .excel-table tr:hover td {
+            background: rgba(91,110,248,0.02);
+        }
+
+        .summary-cell {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+
+        .excel-scroll {
+            max-height: 500px;
+            overflow: auto;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+
+        .excel-footer {
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .alert { 
+            padding: 16px 20px; 
+            border-radius: var(--radius-md); 
+            margin: 16px 0; 
+            font-weight: 700;
+            animation: fadeInScale 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all var(--transition-smooth);
+        }
+
+        .alert::before {
+            font-size: 1.2em;
+        }
+
+        .alert-success { 
+            background: linear-gradient(90deg,#ecfdf5,#d1fae5); 
+            color: var(--success);
+            border: 1px solid rgba(16,185,129,0.1);
+        }
+        
+        .alert-success::before {
+            content: '✅';
+            animation: successScale 0.5s ease-out;
+        }
+
+        .alert-error { 
+            background: linear-gradient(90deg,#fff1f2,#fee2e2); 
+            color: var(--error);
+            border: 1px solid rgba(239,68,68,0.1);
+        }
+
+        .alert-error::before {
+            content: '❌';
+        }
+
+        .alert-warning { 
+            background: linear-gradient(90deg,#fffbeb,#fef3c7); 
+            color: var(--warning);
+            border: 1px solid rgba(245,158,11,0.1);
+        }
+
+        .alert-warning::before {
+            content: '⚠️';
+        }
+
+        .alert:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 800px) {
+            .container { padding: 16px; }
+            .upload-icon { width:48px; height:48px; }
+            .subject-table th, .subject-table td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 ตัวประมวลผลไฟล์นักเรียน</h1>
+        <p class="subtitle">จัดการข้อมูลนักเรียนกลุ่มเสี่ยงไม่มีสิทธิ์สอบ</p>
+
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">คลิกหรือลากไฟล์มาวางที่นี่ (รองรับหลายไฟล์)</div>
+            <div class="upload-hint">รองรับ Excel (.xlsx, .xls) และ CSV (.csv)</div>
+        </div>
+
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple />
+
+        <div class="progress" id="progressBar">
+            <div class="progress-bar" id="progressFill"></div>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn" onclick="processFile()" id="processBtn" disabled>🔄 ประมวลผลข้อมูล</button>
+            <button class="btn" onclick="downloadFile()" id="downloadBtn" disabled>💾 ดาวน์โหลดไฟล์</button>
+            <button class="btn" onclick="clearData()" id="clearBtn">🗑️ ล้างข้อมูลทั้งหมด</button>
+        </div>
+        <div id="fileCounter" style="text-align: center; margin: 10px 0; color: #666;">
+            จำนวนไฟล์ที่ประมวลผลแล้ว: 0 ไฟล์
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="stats" id="statsContainer"></div>
+            <div id="resultsDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+    let fileData = null;
+    let processedData = null;
+    let fileName = '';
+    let accumulatedData = {};
+    let fileCount = 0;
+
+    // เพิ่มตัวแปรเหล่านี้
+    let currentGradeSummary = null;
+    let currentTotalStudents = 0;
+    let currentTotalSubjects = 0;
+    let currentTotalAtRisk = 0;
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            uploadArea.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    if (validateFileType(file)) {
+                        fileName = file.name;
+                        readFile(file);
+                    } else {
+                        showAlert(`ไฟล์ ${file.name} ไม่ใช่ไฟล์ Excel หรือ CSV`, 'error');
+                    }
+                });
+            }
+        }
+
+        function validateFileType(file) {
+            const validTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-excel',
+                'text/csv',
+                'application/csv'
+            ];
+            return validTypes.includes(file.type) || file.name.endsWith('.csv') || 
+                   file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+        }
+
+        function readFile(file) {
+            showProgress();
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    if (file.name.endsWith('.csv')) {
+                        parseCSV(e.target.result);
+                    } else {
+                        parseExcel(e.target.result);
+                    }
+                } catch (error) {
+                    showAlert('เกิดข้อผิดพลาดในการอ่านไฟล์: ' + error.message, 'error');
+                    hideProgress();
+                }
+            };
+
+            if (file.name.endsWith('.csv')) {
+                reader.readAsText(file, 'UTF-8');
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function parseCSV(data) {
+            Papa.parse(data, {
+                header: true,
+                skipEmptyLines: true,
+                dynamicTyping: true,
+                complete: function(results) {
+                    if (results.errors.length > 0) {
+                        console.warn('CSV parsing warnings:', results.errors);
+                    }
+                    fileData = results.data;
+                    updateProgress(50);
+                    enableProcessButton();
+                    showAlert(`อ่านไฟล์สำเร็จ! พบข้อมูล ${fileData.length} รายการ`, 'success');
+                    hideProgress();
+                }
+            });
+        }
+
+        function parseExcel(data) {
+            const workbook = XLSX.read(data, { type: 'array' });
+            fileData = [];
+            
+            // อ่านทุก sheet และรวมข้อมูล
+            workbook.SheetNames.forEach((sheetName, index) => {
+                const worksheet = workbook.Sheets[sheetName];
+                const sheetData = XLSX.utils.sheet_to_json(worksheet, { 
+                    raw: false,
+                    defval: ''
+                });
+                
+                // เพิ่มชื่อ sheet ลงในข้อมูล
+                sheetData.forEach(row => {
+                    row._sheetName = sheetName;
+                });
+                
+                fileData = fileData.concat(sheetData);
+                updateProgress(Math.floor(30 + (20 * (index + 1) / workbook.SheetNames.length)));
+            });
+            
+            enableProcessButton();
+            showAlert(`อ่านไฟล์สำเร็จ! พบข้อมูล ${fileData.length} รายการ จาก ${workbook.SheetNames.length} sheets`, 'success');
+            hideProgress();
+        }
+
+        function enableProcessButton() {
+            document.getElementById('processBtn').disabled = false;
+        }
+
+        // Web Worker for data processing
+        const createWorker = (fn) => {
+            const blob = new Blob(['(' + fn.toString() + ')()'], { type: 'application/javascript' });
+            return new Worker(URL.createObjectURL(blob));
+        };
+
+        let processWorker;
+
+        function processFile() {
+    if (!fileData) {
+        showAlert('กรุณาเลือกไฟล์ก่อนประมวลผล', 'error');
+        return;
+    }
+    
+    if (fileData.length === 0) {
+        showAlert('ไม่พบข้อมูลในไฟล์ หรือไฟล์อาจว่างเปล่า', 'error');
+        return;
+    }
+
+    showProgress();
+    updateProgress(20);
+
+    try {
+        // ค้นหาคอลัมน์ที่ต้องการ
+        const sampleRow = fileData[0];
+        const columns = Object.keys(sampleRow);
+        
+        const requiredColumns = {
+            name: findColumn(columns, ['ชื่อ-สกุล', 'ชื่อ', 'name']),
+            classroom: findColumn(columns, ['ห้อง', 'ชั้น', 'class', 'classroom']),
+            subject: findColumn(columns, ['วิชา/รหัสวิชา', 'รหัสวิชา', 'วิชา', 'subject']),
+            totalHours: findColumn(columns, ['เวลาที่เรียนเต็ม ณ วันสำรวจ', 'เวลาเรียนเต็ม', 'total_hours']),
+            attendedHours: findColumn(columns, ['รวมมาเรียน', 'มาเรียน', 'attended']),
+            attendancePercent: findColumn(columns, ['ร้อยละมาเรียน', 'ร้อยละ', 'percent']),
+            teacher: findColumn(columns, ['ครูผู้สอน', 'ครู', 'teacher', 'อาจารย์'])
+        };
+
+        updateProgress(40);
+
+        // ตรวจสอบเฉพาะคอลัมน์ที่จำเป็นจริงๆ
+        const criticalColumns = ['name', 'subject'];
+        const missingCriticalColumns = criticalColumns
+            .filter(key => !requiredColumns[key])
+            .map(key => key);
+
+        if (missingCriticalColumns.length > 0) {
+            throw new Error(`ไม่พบคอลัมน์ที่จำเป็น: ${missingCriticalColumns.join(', ')}\nคอลัมน์ที่จำเป็นคือ ชื่อ-สกุล และ รหัสวิชา`);
+        }
+
+        // แสดง alert สำหรับคอลัมน์ที่ไม่พบ แต่ไม่จำเป็น
+        const optionalColumns = Object.entries(requiredColumns)
+            .filter(([key]) => !criticalColumns.includes(key))
+            .filter(([_, value]) => !value)
+            .map(([key]) => key);
+
+        if (optionalColumns.length > 0) {
+            showAlert(`ไม่พบบางคอลัมน์ (จะแสดงเป็นช่องว่าง): ${optionalColumns.join(', ')}`, 'warning');
+        }
+
+        // ประมวลผลข้อมูล
+        const studentGroups = {};
+
+        fileData.forEach(row => {
+            const studentName = String(row[requiredColumns.name] || '').trim();
+            if (!studentName) return;
+
+            const subjectCode = String(row[requiredColumns.subject] || '').trim();
+            if (!subjectCode) return;
+
+            const classroom = requiredColumns.classroom ? String(row[requiredColumns.classroom] || '').trim() : '';
+            const totalHours = requiredColumns.totalHours ? (parseFloat(row[requiredColumns.totalHours]) || 0) : 0;
+            const attendedHours = requiredColumns.attendedHours ? (parseFloat(row[requiredColumns.attendedHours]) || 0) : 0;
+            const teacher = requiredColumns.teacher ? String(row[requiredColumns.teacher] || '').trim() : '';
+            
+            let correctPercent = 0;
+            if (totalHours > 0) {
+                correctPercent = Math.round((attendedHours / totalHours) * 100);
+            }
+
+            const studentKey = studentName;
+            if (!studentGroups[studentKey]) {
+                studentGroups[studentKey] = {
+                    classroom: classroom,
+                    subjects: []
+                };
+            }
+
+            studentGroups[studentKey].subjects.push({
+                subjectCode,
+                totalHours,
+                attendedHours,
+                attendancePercent: correctPercent,
+                teacher
+            });
+        });
+
+        updateProgress(70);
+
+        // แยกระดับชั้นและเรียงลำดับ
+        const sortedStudentGroups = {};
+        const gradeOrder = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+        
+        Object.entries(studentGroups).forEach(([studentName, data]) => {
+            const grade = data.classroom.split('/')[0].trim();
+            if (!sortedStudentGroups[grade]) {
+                sortedStudentGroups[grade] = {};
+            }
+            sortedStudentGroups[grade][studentName] = data;
+            data.subjects.sort((a, b) => a.subjectCode.localeCompare(b.subjectCode));
+        });
+
+        const orderedStudentGroups = {};
+        gradeOrder.forEach(grade => {
+            if (sortedStudentGroups[grade]) {
+                Object.entries(sortedStudentGroups[grade])
+                    .sort(([, a], [, b]) => {
+                        const roomA = parseInt(a.classroom.split('/')[1]) || 0;
+                        const roomB = parseInt(b.classroom.split('/')[1]) || 0;
+                        return roomA - roomB;
+                    })
+                    .forEach(([name, data]) => {
+                        orderedStudentGroups[name] = data;
+                    });
+            }
+        });
+
+        // รวมข้อมูลเข้ากับข้อมูลสะสม
+        Object.entries(orderedStudentGroups).forEach(([studentName, data]) => {
+            if (accumulatedData[studentName]) {
+                data.subjects.forEach(subject => {
+                    const existingSubjectIndex = accumulatedData[studentName].subjects.findIndex(
+                        existingSubject => existingSubject.subjectCode === subject.subjectCode
+                    );
+                    
+                    if (existingSubjectIndex === -1) {
+                        subject._sourceFile = fileName;
+                        accumulatedData[studentName].subjects.push(subject);
+                    } else if (subject.attendancePercent !== accumulatedData[studentName].subjects[existingSubjectIndex].attendancePercent) {
+                        const existingPercent = accumulatedData[studentName].subjects[existingSubjectIndex].attendancePercent;
+                        if (subject.attendancePercent < existingPercent) {
+                            subject._sourceFile = fileName;
+                            accumulatedData[studentName].subjects[existingSubjectIndex] = subject;
+                        }
+                    }
+                });
+            } else {
+                data.subjects.forEach(subject => {
+                    subject._sourceFile = fileName;
+                });
+                accumulatedData[studentName] = data;
+            }
+        });
+
+        fileCount++;
+        document.getElementById('fileCounter').textContent = 'จำนวนไฟล์ที่ประมวลผลแล้ว: ' + fileCount + ' ไฟล์';
+
+        processedData = accumulatedData;
+        updateProgress(90);
+        
+        // คำนวณสถิติหลังจากประมวลผลเสร็จ
+        const { gradeSummary, totalAtRisk } = processStudentData(accumulatedData);
+        
+        // คำนวณจำนวนนักเรียนและวิชาทั้งหมด
+        const totalStudents = Object.keys(accumulatedData).length;
+        const totalSubjects = Object.values(accumulatedData).reduce((total, student) => 
+            total + student.subjects.length, 0);
+        
+        // เก็บค่าไว้ใน global variables
+        currentGradeSummary = gradeSummary;
+        currentTotalStudents = totalStudents;
+        currentTotalSubjects = totalSubjects;
+        currentTotalAtRisk = totalAtRisk;
+        
+        // แสดงผลลัพธ์
+        displayGradeSummary(gradeSummary, totalStudents, totalSubjects, totalAtRisk);
+        displayResults(accumulatedData, totalStudents, totalSubjects);
+        
+        document.getElementById('downloadBtn').disabled = false;
+        showAlert('ประมวลผลสำเร็จ!', 'success');
+        updateProgress(100);
+        
+        setTimeout(hideProgress, 1000);
+        
+        fileData = null;
+        
+    } catch (error) {
+        console.error('Processing error:', error);
+        showAlert('เกิดข้อผิดพลาด: ' + error.message, 'error');
+        hideProgress();
+        document.getElementById('processBtn').disabled = true;
+    }
+}
+
+        function findColumn(columns, possibleNames) {
+            for (const possible of possibleNames) {
+                const found = columns.find(col => 
+                    col.toLowerCase().includes(possible.toLowerCase()) ||
+                    possible.toLowerCase().includes(col.toLowerCase())
+                );
+                if (found) return found;
+            }
+            return null;
+        }
+
+        // Create a DocumentFragment for better performance
+        const createFragment = (html) => {
+            const template = document.createElement('template');
+            template.innerHTML = html.trim();
+            return template.content;
+        };
+
+        // Throttle function to limit the rate at which a function can fire
+        const throttle = (func, limit) => {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        };
+
+        // Function to process student data and create grade summary
+        function processStudentData(studentGroups) {
+            if (!studentGroups) {
+                console.error('No student data provided to processStudentData');
+                return { gradeSummary: {}, totalAtRisk: 0 };
+            }
+
+            const gradeSummary = {};
+            let totalAtRisk = 0;
+
+            // Calculate summary data
+            Object.entries(studentGroups).forEach(([studentName, data]) => {
+                const grade = (data.classroom || '').split('/')[0].trim() || 'ไม่ระบุชั้น';
+                if (!gradeSummary[grade]) {
+                    gradeSummary[grade] = {
+                        totalStudents: 0,
+                        totalSubjects: 0,
+                        atRiskStudents: 0,
+                        avgAttendance: 0,
+                        totalAttendance: 0,
+                        subjectCount: 0
+                    };
+                }
+                
+                gradeSummary[grade].totalStudents++;
+                gradeSummary[grade].totalSubjects += data.subjects.length;
+                
+                data.subjects.forEach(subject => {
+                    gradeSummary[grade].totalAttendance += subject.attendancePercent || 0;
+                    gradeSummary[grade].subjectCount++;
+                    if (subject.attendancePercent < 80) {
+                        gradeSummary[grade].atRiskStudents++;
+                        totalAtRisk++;
+                    }
+                });
+            });
+
+            Object.values(gradeSummary).forEach(stats => {
+                stats.avgAttendance = stats.subjectCount > 0 
+                    ? Math.round(stats.totalAttendance / stats.subjectCount) 
+                    : 0;
+            });
+
+            return { gradeSummary, totalAtRisk };
+        }
+
+    function displayGradeSummary(gradeSummary, totalStudents, totalSubjects, totalAtRisk) {
+    // Input validation
+    if (!gradeSummary || typeof gradeSummary !== 'object') {
+        console.error('Invalid grade summary data:', gradeSummary);
+        return;
+    }
+    
+    totalStudents = Number(totalStudents) || 0;
+    totalSubjects = Number(totalSubjects) || 0;
+    totalAtRisk = Number(totalAtRisk) || 0;
+    
+    const gradeOrder = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6', 'ไม่ระบุชั้น'];
+    
+    let summaryTableHtml = `
+        <div class="excel-grid">
+            <div class="excel-header">
+                <div class="excel-title">สรุปภาพรวมแต่ละระดับชั้น</div>
+                <div class="excel-actions">
+                    <button class="excel-button" onclick="exportSummaryToExcel()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        ดาวน์โหลด Excel
+                    </button>
+                </div>
+            </div>
+            <div class="excel-scroll">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>ระดับชั้น</th>
+                            <th>จำนวนนักเรียน</th>
+                            <th>จำนวนวิชารวม</th>
+                            <th>เฉลี่ยวิชา/คน</th>
+                            <th>การมาเรียนเฉลี่ย</th>
+                            <th>นักเรียนเสี่ยง</th>
+                            <th>% นักเรียนเสี่ยง</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+    gradeOrder.forEach(grade => {
+        const stats = gradeSummary[grade];
+        if (stats) {
+            summaryTableHtml += `
+                        <tr>
+                            <td>${grade}</td>
+                            <td>${stats.totalStudents}</td>
+                            <td>${stats.totalSubjects}</td>
+                            <td>${stats.totalStudents ? Math.round(stats.totalSubjects / stats.totalStudents * 10) / 10 : 0}</td>
+                            <td>${stats.avgAttendance}%</td>
+                            <td>${stats.atRiskStudents}</td>
+                            <td>${stats.totalStudents ? Math.round(stats.atRiskStudents / stats.totalStudents * 100) : 0}%</td>
+                        </tr>`;
+        }
+    });
+
+    summaryTableHtml += `
+                        <tr>
+                            <td class="summary-cell">รวมทั้งหมด</td>
+                            <td class="summary-cell">${totalStudents}</td>
+                            <td class="summary-cell">${totalSubjects}</td>
+                            <td class="summary-cell">${Math.round(totalSubjects / totalStudents * 10) / 10}</td>
+                            <td class="summary-cell">${Math.round(Object.values(gradeSummary).reduce((sum, stats) => 
+                                sum + stats.avgAttendance, 0) / Object.keys(gradeSummary).length)}%</td>
+                            <td class="summary-cell">${totalAtRisk}</td>
+                            <td class="summary-cell">${Math.round(totalAtRisk / totalStudents * 100)}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="excel-footer">
+                * นักเรียนเสี่ยง คือนักเรียนที่มีการมาเรียนต่ำกว่า 80% ในอย่างน้อย 1 วิชา
+            </div>
+        </div>
+    `;
+    
+    const summaryContainer = document.createElement('div');
+    summaryContainer.innerHTML = summaryTableHtml;
+    
+    const resultsDisplay = document.getElementById('resultsDisplay');
+    resultsDisplay.insertBefore(summaryContainer, resultsDisplay.firstChild);
+}
+
+        function displayResults(studentGroups, totalStudents, totalSubjects) {
+        // Create stats fragment
+        const statsHtml = 
+            '<div class="stat-item">' +
+                '<div class="stat-number">' + totalStudents + '</div>' +
+                '<div class="stat-label">นักเรียน</div>' +
+            '</div>' +
+            '<div class="stat-item">' +
+                '<div class="stat-number">' + totalSubjects + '</div>' +
+                '<div class="stat-label">รายวิชา</div>' +
+            '</div>' +
+            '<div class="stat-item">' +
+                '<div class="stat-number">' + (Math.round(totalSubjects / totalStudents * 10) / 10) + '</div>' +
+                '<div class="stat-label">เฉลี่ย/คน</div>' +
+            '</div>';
+        
+        const statsFragment = createFragment(statsHtml);
+        document.getElementById('statsContainer').replaceChildren(statsFragment);
+
+        // จัดกลุ่มนักเรียนตามระดับชั้น
+        const gradeGroups = {};
+        Object.entries(studentGroups).forEach(([studentName, data]) => {
+            const classroom = data.classroom || '';
+            const grade = classroom.split('/')[0].trim() || 'ไม่ระบุชั้น';
+            if (!gradeGroups[grade]) {
+                gradeGroups[grade] = {};
+            }
+            gradeGroups[grade][studentName] = data;
+        });
+
+        // เรียงลำดับระดับชั้น
+        const gradeOrder = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6', 'ไม่ระบุชั้น'];
+        
+        // สร้าง HTML สำหรับแต่ละระดับชั้น
+        const resultsFragment = document.createDocumentFragment();
+        
+        gradeOrder.forEach(grade => {
+            if (gradeGroups[grade]) {
+                const gradeHeader = createFragment(
+                    '<div class="grade-header">' +
+                        '<h2>' + grade + '</h2>' +
+                    '</div>');
+                resultsFragment.appendChild(gradeHeader);
+
+                // เรียงลำดับนักเรียนตามห้อง
+                const sortedStudents = Object.entries(gradeGroups[grade])
+                    .sort(([, a], [, b]) => {
+                        const roomA = parseInt((a.classroom || '').split('/')[1]) || 0;
+                        const roomB = parseInt((b.classroom || '').split('/')[1]) || 0;
+                        return roomA - roomB;
+                    });
+
+                sortedStudents.forEach(([studentName, data], idx) => {
+                    const delayMs = 80 * (idx % 6);
+                    
+                    let subjectsHtml = '';
+                    data.subjects.forEach(subject => {
+                        subjectsHtml += '<tr>' +
+                            '<td>' + (subject.subjectCode || '-') + '</td>' +
+                            '<td>' + (subject.totalHours || '0') + '</td>' +
+                            '<td>' + (subject.attendedHours || '0') + '</td>' +
+                            '<td>' + (subject.attendancePercent || '0') + '</td>' +
+                            '<td>' + (subject.teacher || '-') + '</td>' +
+                        '</tr>';
+                    });
+
+                    const studentHtml = 
+                        '<div class="student-section" style="animation-delay: ' + delayMs + 'ms;">' +
+                            '<div class="student-name">' + studentName + 
+                            ' <span style="color:var(--muted); font-weight:600; font-size:12px;">| ห้อง: ' + 
+                            (data.classroom || 'ไม่ระบุ') + '</span></div>' +
+                            '<table class="subject-table">' +
+                                '<thead>' +
+                                    '<tr>' +
+                                        '<th>รหัสวิชา</th>' +
+                                        '<th>เวลาที่เรียนเต็ม</th>' +
+                                        '<th>รวมมาเรียน</th>' +
+                                        '<th>ร้อยละมาเรียน</th>' +
+                                        '<th>ครูผู้สอน</th>' +
+                                    '</tr>' +
+                                '</thead>' +
+                                '<tbody>' +
+                                    subjectsHtml +
+                                '</tbody>' +
+                            '</table>' +
+                        '</div>';
+                    
+                    const studentFragment = createFragment(studentHtml);
+                    resultsFragment.appendChild(studentFragment);
+                });
+            }
+        });
+
+        const resultsDisplay = document.getElementById('resultsDisplay');
+        resultsDisplay.replaceChildren(resultsFragment);
+        
+        const resultContainerEl = document.getElementById('resultContainer');
+        resultContainerEl.style.display = 'block';
+
+        // Optimize event listeners using event delegation
+        resultsDisplay.addEventListener('mouseenter', (e) => {
+            const studentSection = e.target.closest('.student-section');
+            if (studentSection) {
+                studentSection.style.transform = 'translateY(-6px) var(--use-transform)';
+            }
+        }, true);
+
+        resultsDisplay.addEventListener('mouseleave', (e) => {
+            const studentSection = e.target.closest('.student-section');
+            if (studentSection) {
+                studentSection.style.transform = 'translateY(0) var(--use-transform)';
+            }
+        }, true);
+
+        // smooth scroll to results
+        setTimeout(() => {
+            resultContainerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+    }
+
+        function clearData() {
+        accumulatedData = {};
+        fileCount = 0;
+        processedData = null;
+        currentGradeSummary = null;
+        currentTotalStudents = 0;
+        currentTotalSubjects = 0;
+        currentTotalAtRisk = 0;
+        document.getElementById('fileCounter').textContent = 'จำนวนไฟล์ที่ประมวลผลแล้ว: 0 ไฟล์';
+        document.getElementById('downloadBtn').disabled = true;
+        document.getElementById('resultContainer').style.display = 'none';
+        showAlert('ล้างข้อมูลทั้งหมดแล้ว', 'success');
+    }   
+
+        function exportSummaryToExcel() {
+        if (!currentGradeSummary) {
+            showAlert('ไม่มีข้อมูลสรุปให้ดาวน์โหลด', 'error');
+            return;
+        }
+        
+        const gradeOrder = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6', 'ไม่ระบุชั้น'];
+        
+        const wb = XLSX.utils.book_new();
+        const summaryData = [];
+        
+        summaryData.push([
+            'ระดับชั้น',
+            'จำนวนนักเรียน',
+            'จำนวนวิชารวม',
+            'เฉลี่ยวิชา/คน',
+            'การมาเรียนเฉลี่ย (%)',
+            'นักเรียนเสี่ยง',
+            '% นักเรียนเสี่ยง'
+        ]);
+
+        gradeOrder.forEach(grade => {
+            const stats = currentGradeSummary[grade];
+            if (stats) {
+                summaryData.push([
+                    grade,
+                    stats.totalStudents,
+                    stats.totalSubjects,
+                    stats.totalStudents ? Math.round(stats.totalSubjects / stats.totalStudents * 10) / 10 : 0,
+                    stats.avgAttendance,
+                    stats.atRiskStudents,
+                    stats.totalStudents ? Math.round(stats.atRiskStudents / stats.totalStudents * 100) : 0
+                ]);
+            }
+        });
+
+        const totalRow = [
+            'รวมทั้งหมด',
+            currentTotalStudents,
+            currentTotalSubjects,
+            Math.round(currentTotalSubjects / currentTotalStudents * 10) / 10,
+            Math.round(Object.values(currentGradeSummary).reduce((sum, stats) => 
+                sum + stats.avgAttendance, 0) / Object.keys(currentGradeSummary).length),
+            currentTotalAtRisk,
+            Math.round(currentTotalAtRisk / currentTotalStudents * 100)
+        ];
+        summaryData.push(totalRow);
+
+        const ws = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, ws, "สรุปภาพรวม");
+        XLSX.writeFile(wb, "summary_report.xlsx");
+        showAlert('ดาวน์โหลดไฟล์สรุปสำเร็จ!', 'success');
+    }       
+
+        function downloadFile() {
+            if (!processedData || Object.keys(processedData).length === 0) {
+                showAlert('ไม่มีข้อมูลที่ประมวลผลแล้ว', 'error');
+                return;
+            }
+
+            // สร้างข้อมูลสำหรับ Excel - แปลง object เป็น array ก่อน
+            const sortedStudents = Object.entries(processedData)
+                .sort(([nameA], [nameB]) => nameA.localeCompare(nameB));
+
+            const exportData = [];
+            sortedStudents.forEach(([studentName, data]) => {
+                data.subjects.forEach((subject, index) => {
+                    exportData.push({
+                        'ชื่อ-สกุล': index === 0 ? studentName : '',
+                        'ห้อง': index === 0 ? data.classroom : '',
+                        'รหัสวิชา': subject.subjectCode,
+                        'เวลาที่เรียนเต็ม ณ วันสำรวจ': subject.totalHours,
+                        'รวมมาเรียน': subject.attendedHours,
+                        'ร้อยละมาเรียน': subject.attendancePercent,
+                        'ครูผู้สอน': subject.teacher
+                    });
+                });
+                // เพิ่มแถวว่างระหว่างนักเรียน
+                exportData.push({
+                    'ชื่อ-สกุล': '',
+                    'ห้อง': '',
+                    'รหัสวิชา': '',
+                    'เวลาที่เรียนเต็ม ณ วันสำรวจ': '',
+                    'รวมมาเรียน': '',
+                    'ร้อยละมาเรียน': '',
+                    'ครูผู้สอน': ''
+                });
+            });
+
+            // สร้าง Excel file
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "ข้อมูลนักเรียน");
+
+            // ดาวน์โหลด
+            const originalName = fileName.replace(/\.[^/.]+$/, "");
+            XLSX.writeFile(wb, originalName + '_filtered.xlsx');
+            
+            showAlert('ดาวน์โหลดไฟล์สำเร็จ!', 'success');
+        }
+
+        function showProgress() {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.display = 'block';
+            // เพิ่ม animation เมื่อแสดง progress bar
+            progressBar.style.animation = 'fadeInScale 0.3s ease-out';
+        }
+
+        function hideProgress() {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => {
+                progressBar.style.display = 'none';
+                updateProgress(0);
+            }, 300);
+        }
+
+        function updateProgress(percent) {
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percent + '%';
+            // อัพเดทข้อความแสดงสถานะ
+            if (percent === 100) {
+                progressFill.setAttribute('title', 'เสร็จสมบูรณ์');
+            } else {
+                progressFill.setAttribute('title', 'กำลังประมวลผล ' + percent + '%');
+            }
+        }
+
+        // Debounce function for performance optimization
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
+        const showAlert = debounce((message, type = 'success') => {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = 'alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
+            alert.style.transform = 'var(--use-transform)';
+            alert.style.willChange = 'transform, opacity';
+            alert.textContent = message;
+            
+            const fragment = document.createDocumentFragment();
+            fragment.appendChild(alert);
+            alertContainer.replaceChildren(fragment);
+            
+            setTimeout(() => {
+                const alert = alertContainer.firstChild;
+                if (alert) {
+                    alert.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => {
+                        alertContainer.replaceChildren();
+                    }, 300);
+                }
+            }, 5000);
+        }, 300);
+    </script>
+</body>
+</html>
