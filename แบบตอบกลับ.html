@@ -21,6 +21,15 @@
             font-weight: 600;
             padding: 8px 12px;
         }
+        /* สไตล์สำหรับเซลล์ที่แก้ไขได้ (Inline Edit) */
+        [contenteditable="true"] {
+            cursor: text;
+            padding: 4px; /* ปรับ Padding เพื่อให้แก้ไขง่ายขึ้น */
+        }
+        [contenteditable="true"]:focus {
+            outline: 2px solid #fcd34d; /* วงแหวนสีเหลืองเมื่อโฟกัส */
+            background-color: #fffbeb; /* พื้นหลังสีเหลืองอ่อนเมื่อกำลังแก้ไข */
+        }
     </style>
     <!-- โหลดไลบรารี SheetJS (xlsx) สำหรับการส่งออกไฟล์ Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
@@ -34,9 +43,8 @@
         <p class="text-gray-600 mb-8">กรอกข้อมูลพื้นฐานและข้อมูลรายวิชาในช่องด้านล่าง แล้วจึงเพิ่มรายชื่อนักเรียนในตาราง</p>
 
         <!-- ส่วนที่ 1: ข้อมูลรายงานคงที่ (แสดงผลตลอดเวลา) -->
-        <!-- ลบปุ่ม toggleConfigForm และคลาส hidden ออกจาก div นี้ -->
         <div id="config-form" class="bg-blue-50 p-6 rounded-lg mb-8 border border-blue-200">
-            <h2 class="text-xl font-bold text-blue-700 mb-4">ข้อมูลพื้นฐานของรายงาน (ใช้สำหรับหัวรายงาน XLSX)</h2>
+            <h2 class="text-xl font-bold text-blue-700 mb-4">ข้อมูลพื้นฐานของรายงาน (ใช้สำหรับชื่อไฟล์)</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="col-span-1">
                     <label for="schoolName" class="block text-sm font-medium text-gray-700">ชื่อโรงเรียน</label>
@@ -248,8 +256,6 @@
             return true;
         }
 
-        // ฟังก์ชันสำหรับเปิด/ปิด ส่วนตั้งค่า (ถูกลบออกแล้ว)
-
         // บันทึกข้อมูลพื้นฐานลงใน Local Storage เพื่อไม่ต้องพิมพ์ซ้ำ (อัปเดตให้รวม batch context ด้วย)
         function saveConfigs() {
             const currentSubjectCode = document.getElementById('batchSubjectCode').value.trim();
@@ -259,7 +265,6 @@
             if (!document.getElementById('teacherName').value.trim()) {
                 showStatus('กรุณากรอก "ชื่อครูประจำวิชา" ด้วยครับ/ค่ะ', 'red');
                 document.getElementById('teacherName').focus();
-                // ไม่ต้องเรียก document.getElementById('config-form').classList.remove('hidden') เพราะแสดงอยู่แล้ว
                 return null; // หยุดการทำงานถ้าไม่มีชื่อครู
             }
             
@@ -336,6 +341,36 @@
             renderTable();
         }
 
+        // ฟังก์ชันสำหรับอัปเดตข้อมูลนักเรียนที่แก้ไขโดยตรงในตาราง
+        function updateStudentData(id, field, newValue) {
+            const studentIndex = students.findIndex(s => s.id === id);
+            if (studentIndex === -1) return;
+
+            const student = students[studentIndex];
+
+            if (field === 'name' || field === 'class') {
+                student[field] = newValue.trim();
+            } else if (field === 'absent' || field === 'leave') {
+                let parsedValue = parseFloat(newValue.trim()) || 0;
+                
+                // Validation: Check if total absent/leave exceeds full time
+                let totalAbsentIfChanged = (field === 'absent' ? parsedValue : student.absent) + (field === 'leave' ? parsedValue : student.leave);
+                
+                if (totalAbsentIfChanged > student.full) {
+                    showStatus('เวลาขาด/ลา รวมกันเกิน เวลาเรียนเต็ม (' + student.full.toFixed(2) + ') กรุณาตรวจสอบข้อมูล!', 'red');
+                    renderTable(); // Re-render to revert to last valid state
+                    return;
+                }
+
+                if (parsedValue < 0) parsedValue = 0; // Prevent negative values
+                
+                student[field] = parsedValue;
+            }
+
+            // Re-render the table to recalculate percentage and status
+            renderTable();
+        }
+
         // ลบนักเรียน
         function deleteStudent(id) {
             students = students.filter(s => s.id !== id);
@@ -360,40 +395,60 @@
                 // คอลัมน์ที่ (Index)
                 let cell = row.insertCell();
                 cell.textContent = index + 1;
-                cell.className = 'text-center';
+                cell.className = 'text-center p-2 border border-gray-200';
 
-                // ข้อมูลนักเรียน
-                row.insertCell().textContent = s.name;
+                // ข้อมูลนักเรียน (แก้ไขได้)
+                let nameCell = row.insertCell();
+                nameCell.textContent = s.name;
+                nameCell.contentEditable = "true";
+                nameCell.className = 'text-left p-2 border border-gray-200';
+                nameCell.onblur = (e) => updateStudentData(s.id, 'name', e.target.textContent);
+
+                // วิชา/รหัสวิชา (อ่านอย่างเดียว)
                 row.insertCell().textContent = s.subject;
-                row.insertCell().textContent = s.class;
+
+                // ชั้น (แก้ไขได้)
+                let classCell = row.insertCell();
+                classCell.textContent = s.class;
+                classCell.contentEditable = "true";
+                classCell.className = 'text-center p-2 border border-gray-200';
+                classCell.onblur = (e) => updateStudentData(s.id, 'class', e.target.textContent);
                 
-                // ตัวเลข (จัดกึ่งกลาง)
+                // เวลาเรียนเต็ม (อ่านอย่างเดียว)
                 cell = row.insertCell();
                 cell.textContent = s.full.toFixed(2);
                 cell.className = 'text-center';
 
-                cell = row.insertCell();
-                cell.textContent = s.absent.toFixed(2);
-                cell.className = 'text-center';
+                // ขาด/หนีเรียน (แก้ไขได้)
+                let absentCell = row.insertCell();
+                absentCell.textContent = s.absent.toFixed(2);
+                absentCell.contentEditable = "true";
+                absentCell.className = 'text-center p-2 border border-gray-200';
+                absentCell.onblur = (e) => updateStudentData(s.id, 'absent', e.target.textContent);
 
-                cell = row.insertCell();
-                cell.textContent = s.leave.toFixed(2);
-                cell.className = 'text-center';
+                // ลา (แก้ไขได้)
+                let leaveCell = row.insertCell();
+                leaveCell.textContent = s.leave.toFixed(2);
+                leaveCell.contentEditable = "true";
+                leaveCell.className = 'text-center p-2 border border-gray-200';
+                leaveCell.onblur = (e) => updateStudentData(s.id, 'leave', e.target.textContent);
 
+                // รวม (คำนวณ)
                 cell = row.insertCell();
                 cell.textContent = totalAbsent.toFixed(2);
                 cell.className = 'text-center font-semibold';
                 
+                // มาเรียน (คำนวณ)
                 cell = row.insertCell();
                 cell.textContent = actualAttendance.toFixed(2);
                 cell.className = 'text-center font-semibold text-blue-600';
 
-                // ร้อยละ
+                // ร้อยละ (คำนวณ)
                 const percentCell = row.insertCell();
                 percentCell.textContent = percentage.toFixed(2) + '%';
                 percentCell.className = `font-bold text-center ${isEligible ? 'text-green-600' : 'text-red-600'}`;
                 
-                // สถานะ
+                // สถานะ (คำนวณ)
                 const statusCell = row.insertCell();
                 statusCell.textContent = isEligible ? 'มีสิทธิ์สอบ' : 'ไม่มีสิทธิ์สอบ';
                 statusCell.className = `text-center font-semibold ${isEligible ? 'text-green-700' : 'text-red-700'}`;
@@ -446,14 +501,13 @@
         function exportToXLSX() {
             // ตรวจสอบชื่อครูอีกครั้งก่อนส่งออก
             if (!document.getElementById('teacherName').value.trim()) {
-                showStatus('กรุณาคลิกเพื่อเปิด "ข้อมูลพื้นฐานของรายงาน" แล้วกรอกชื่อครูประจำวิชาด้วยครับ/ค่ะ');
-                // ไม่ต้องเรียก document.getElementById('config-form').classList.remove('hidden') เพราะแสดงอยู่แล้ว
+                showStatus('กรุณากรอก "ชื่อครูประจำวิชา" ด้วยครับ/ค่ะ', 'red');
                 document.getElementById('teacherName').focus();
                 return;
             }
 
             if (students.length === 0) {
-                showStatus('ไม่พบข้อมูลนักเรียนสำหรับส่งออก กรุณาเพิ่มรายชื่อนักเรียนก่อน!');
+                showStatus('ไม่พบข้อมูลนักเรียนสำหรับส่งออก กรุณาเพิ่มรายชื่อนักเรียนก่อน!', 'red');
                 return;
             }
 
@@ -464,75 +518,63 @@
                 return; // หยุดถ้า saveConfigs ล้มเหลว (เช่น ชื่อครูยังว่าง)
             }
 
-            // 1. เตรียมข้อมูลรายงาน (Header & Metadata)
-            const dateStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            // 2. เตรียมข้อมูลตาราง (Data Table)
+            // 1. เตรียมข้อมูลตาราง (Data Table)
+            // ปรับชื่อคอลัมน์ให้ตรงกับโปรแกรมที่สองคาดหวัง
             const tableHeader = [
-                'ที่',
                 'ชื่อ-สกุล',
-                'วิชา/รหัสวิชา',
                 'ชั้น',
-                'เวลาเรียนเต็ม ณ วันสำรวจ',
-                'ขาด/หนีเรียน',
-                'ลา',
-                'รวม',
-                'มาเรียน',
-                'ร้อยละ',
-                'สถานะสิทธิ์สอบ'
+                'วิชา/รหัสวิชา',
+                'เวลาเรียนเต็ม ณ วันสำรวจ', // totalHours
+                'รวมมาเรียน',              // attendedHours
+                'ร้อยละมาเรียน',          // attendancePercent
+                'ครูผู้สอน'                // teacher
             ];
             
-            const studentData = students.map((s, index) => {
+            const teacherName = currentConfig.teacherName; // ดึงชื่อครูไว้ใช้ในทุกแถว
+            
+            const studentData = students.map((s) => {
                 const totalAbsent = s.absent + s.leave;
                 const actualAttendance = s.full - totalAbsent;
-                const percentage = s.full > 0 ? (actualAttendance / s.full) * 100 : 0;
-                const status = percentage >= 80 ? 'มีสิทธิ์สอบ' : 'ไม่มีสิทธิ์สอบ';
+                // คำนวณร้อยละและปัดเศษ (0-100)
+                const percentage = s.full > 0 ? Math.round((actualAttendance / s.full) * 100) : 0;
 
                 return [
-                    index + 1,
                     s.name,
-                    s.subject,
                     s.class,
+                    s.subject,
                     s.full.toFixed(2),
-                    s.absent.toFixed(2),
-                    s.leave.toFixed(2),
-                    totalAbsent.toFixed(2),
                     actualAttendance.toFixed(2),
-                    percentage.toFixed(2) + '%',
-                    status
+                    percentage.toString(), // ส่งเป็นตัวเลข (string) หรือ Number ก็ได้
+                    teacherName
                 ];
             });
 
             // รวมข้อมูลทั้งหมด
             const worksheetData = [
-                ...reportHeader,
                 tableHeader,
-                ...studentData,
-                ...signatureFooter
+                ...studentData
             ];
 
-            // 4. สร้าง Worksheet และ Workbook
+            // 2. สร้าง Worksheet และ Workbook
             const ws = XLSX.utils.aoa_to_sheet(worksheetData);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "รายงานนักเรียน");
+            XLSX.utils.book_append_sheet(wb, ws, "ข้อมูลนักเรียน");
 
             // ปรับความกว้างคอลัมน์ (Optional)
             ws['!cols'] = [
-                { wch: 5 },  // ที่
                 { wch: 30 }, // ชื่อ-สกุล
-                { wch: 18 }, // วิชา/รหัสวิชา
                 { wch: 10 }, // ชั้น
-                { wch: 15 }, // เวลาเรียนเต็ม
-                { wch: 15 }, // ขาด/หนีเรียน
-                { wch: 10 }, // ลา
-                { wch: 10 }, // รวม
-                { wch: 10 }, // มาเรียน
-                { wch: 10 }, // ร้อยละ
-                { wch: 15 }  // สถานะ
+                { wch: 18 }, // วิชา/รหัสวิชา
+                { wch: 20 }, // เวลาเรียนเต็ม ณ วันสำรวจ
+                { wch: 15 }, // รวมมาเรียน
+                { wch: 15 }, // ร้อยละมาเรียน
+                { wch: 30 }  // ครูผู้สอน
             ];
 
-            // 5. ดาวน์โหลดไฟล์
-            const filename = `รายงานไม่มีสิทธิ์สอบ_${currentConfig.semester}_${currentConfig.academicYear}_${new Date().getTime()}.xlsx`;
+            // 3. ดาวน์โหลดไฟล์ - เปลี่ยนชื่อไฟล์
+            const sanitizedTeacherName = currentConfig.teacherName.replace(/ /g, '_').replace(/[^\w\d-_]/g, '');
+            const filename = `${sanitizedTeacherName}_${currentConfig.batchSubjectCode}.xlsx`;
+            
             XLSX.writeFile(wb, filename);
 
             showStatus('ส่งออกไฟล์ XLSX เรียบร้อยแล้ว!', 'blue');
