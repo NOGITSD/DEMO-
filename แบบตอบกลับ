@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมสร้างรายงานนักเรียนไม่มีสิทธิ์สอบ</title>
+    <!-- โหลด Tailwind CSS เพื่อความสวยงามและ Responsive Design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- โหลด Font Inter สำหรับภาษาไทยและอังกฤษ -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+    <!-- โหลดไลบรารี SheetJS (xlsx) สำหรับการส่งออกไฟล์ Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-xl p-6 md:p-10">
+        <h1 class="text-3xl font-extrabold text-blue-800 mb-6 border-b-4 border-blue-200 pb-2">
+            เครื่องมือสร้างรายงานนักเรียนไม่มีสิทธิ์สอบ (ส่งออก XLSX)
+        </h1>
+        <p class="text-gray-600 mb-8">กรอกข้อมูลพื้นฐานของรายงานและเพิ่มรายชื่อนักเรียนที่ต้องการแจ้ง จากนั้นกดปุ่ม "ส่งออกเป็น XLSX"</p>
+
+        <!-- ส่วนที่ 1: ข้อมูลรายงานคงที่ (ไม่ต้องพิมพ์ซ้ำ) -->
+        <div id="config-form" class="bg-blue-50 p-6 rounded-lg mb-8 border border-blue-200">
+            <h2 class="text-xl font-bold text-blue-700 mb-4">ข้อมูลพื้นฐานของรายงาน</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="col-span-1">
+                    <label for="schoolName" class="block text-sm font-medium text-gray-700">ชื่อโรงเรียน</label>
+                    <input type="text" id="schoolName" value="โรงเรียนนาแห้ววิทยา" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="col-span-1">
+                    <label for="teacherName" class="block text-sm font-medium text-gray-700">ชื่อครูประจำวิชา</label>
+                    <input type="text" id="teacherName" value="" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="col-span-1">
+                    <label for="semester" class="block text-sm font-medium text-gray-700">ภาคเรียน</label>
+                    <input type="text" id="semester" value="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="col-span-1">
+                    <label for="academicYear" class="block text-sm font-medium text-gray-700">ปีการศึกษา</label>
+                    <input type="number" id="academicYear" value="2568" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="col-span-2">
+                    <label for="dateRange" class="block text-sm font-medium text-gray-700">ช่วงวันที่สำรวจ (ระหว่างวันที่...ถึงวันที่...)</label>
+                    <input type="text" id="dateRange" value="ระหว่างวันที่ 16 พ.ค. ถึงวันที่ 30 ก.ย." class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="saveConfigs()" class="px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 transition duration-150">
+                    บันทึกข้อมูลพื้นฐาน
+                </button>
+            </div>
+        </div>
+
+        <!-- ส่วนที่ 2: การเพิ่มรายชื่อนักเรียน -->
+        <div id="student-input" class="bg-gray-100 p-6 rounded-lg mb-8 border border-gray-300">
+            <h2 class="text-xl font-bold text-gray-700 mb-4">เพิ่ม/แก้ไข รายชื่อนักเรียน</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <!-- Inputs for student data -->
+                <input type="text" id="stuName" placeholder="ชื่อ-สกุล" class="col-span-2 p-2 rounded-md border">
+                <input type="text" id="subjectCode" placeholder="วิชา/รหัสวิชา" class="col-span-1 p-2 rounded-md border">
+                <input type="text" id="stuClass" placeholder="ชั้น" class="col-span-1 p-2 rounded-md border">
+                <input type="number" id="fullTime" placeholder="เวลาเรียนเต็ม" class="col-span-1 p-2 rounded-md border" min="0">
+                <input type="number" id="absentNoExcuse" placeholder="ขาด/หนีเรียน" class="col-span-1 p-2 rounded-md border" min="0">
+                <input type="number" id="absentWithExcuse" placeholder="ลา" class="col-span-1 p-2 rounded-md border" min="0">
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="addStudent()" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-150">
+                    เพิ่มนักเรียน
+                </button>
+            </div>
+        </div>
+
+        <!-- ส่วนที่ 3: ตารางแสดงข้อมูลนักเรียน (Preview) -->
+        <h2 class="text-xl font-bold text-gray-700 mb-4">รายชื่อนักเรียนที่แจ้ง (<span id="studentCount">0</span> คน)</h2>
+        <div class="overflow-x-auto shadow-md rounded-lg mb-8">
+            <table id="studentTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">ที่</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อ-สกุล</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วิชา/รหัสวิชา</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ชั้น</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">เวลาเรียนเต็ม</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">รวมขาด (ชม.)</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">มาเรียน (ชม.)</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ร้อยละ (%)</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                        <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ลบ</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="studentTableBody">
+                    <!-- Data rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ส่วนที่ 4: ปุ่มส่งออก -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+            <div id="statusMessage" class="text-lg font-medium text-red-600"></div>
+            <button onclick="exportToXLSX()" class="mt-4 md:mt-0 px-8 py-3 bg-red-600 text-white text-xl font-bold rounded-full shadow-lg hover:bg-red-700 transition duration-200 transform hover:scale-105">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                ส่งออกเป็น XLSX
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ใช้ localStorage เพื่อเก็บข้อมูลพื้นฐานของรายงาน (Config)
+        let students = [];
+        let config = loadConfigs();
+
+        // โหลดข้อมูลพื้นฐานที่บันทึกไว้ใน Local Storage
+        function loadConfigs() {
+            try {
+                const savedConfig = JSON.parse(localStorage.getItem('attendanceConfig'));
+                if (savedConfig) {
+                    document.getElementById('schoolName').value = savedConfig.schoolName || "โรงเรียนนาแห้ววิทยา";
+                    document.getElementById('teacherName').value = savedConfig.teacherName || "";
+                    document.getElementById('semester').value = savedConfig.semester || "1";
+                    document.getElementById('academicYear').value = savedConfig.academicYear || "2568";
+                    document.getElementById('dateRange').value = savedConfig.dateRange || "ระหว่างวันที่...ถึงวันที่...";
+                    return savedConfig;
+                }
+            } catch (e) {
+                console.error("Error loading config from localStorage:", e);
+            }
+            return {};
+        }
+
+        // บันทึกข้อมูลพื้นฐานลงใน Local Storage เพื่อไม่ต้องพิมพ์ซ้ำ
+        function saveConfigs() {
+            config = {
+                schoolName: document.getElementById('schoolName').value,
+                teacherName: document.getElementById('teacherName').value,
+                semester: document.getElementById('semester').value,
+                academicYear: document.getElementById('academicYear').value,
+                dateRange: document.getElementById('dateRange').value
+            };
+            localStorage.setItem('attendanceConfig', JSON.stringify(config));
+            showStatus('บันทึกข้อมูลพื้นฐานเรียบร้อยแล้ว!', 'green');
+            return config;
+        }
+
+        // แสดงข้อความสถานะ
+        function showStatus(message, color = 'red') {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = `text-lg font-medium text-${color}-600`;
+            setTimeout(() => { statusElement.textContent = ''; }, 5000);
+        }
+
+        // เพิ่มนักเรียนใหม่
+        function addStudent() {
+            const student = {
+                id: Date.now(),
+                name: document.getElementById('stuName').value.trim(),
+                subject: document.getElementById('subjectCode').value.trim(),
+                class: document.getElementById('stuClass').value.trim(),
+                full: parseFloat(document.getElementById('fullTime').value) || 0,
+                absent: parseFloat(document.getElementById('absentNoExcuse').value) || 0,
+                leave: parseFloat(document.getElementById('absentWithExcuse').value) || 0,
+            };
+
+            if (!student.name || !student.subject || student.full <= 0) {
+                showStatus('กรุณากรอก ชื่อ-สกุล, วิชา/รหัสวิชา และเวลาเรียนเต็มให้ถูกต้อง (เวลาเรียนเต็มต้องมากกว่า 0)');
+                return;
+            }
+
+            // เคลียร์ฟอร์ม
+            document.getElementById('stuName').value = '';
+            document.getElementById('subjectCode').value = '';
+            document.getElementById('stuClass').value = '';
+            document.getElementById('fullTime').value = '';
+            document.getElementById('absentNoExcuse').value = '';
+            document.getElementById('absentWithExcuse').value = '';
+
+            students.push(student);
+            renderTable();
+        }
+
+        // ลบนักเรียน
+        function deleteStudent(id) {
+            students = students.filter(s => s.id !== id);
+            renderTable();
+        }
+
+        // แสดงตารางข้อมูลนักเรียน
+        function renderTable() {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+            document.getElementById('studentCount').textContent = students.length;
+
+            students.forEach((s, index) => {
+                const totalAbsent = s.absent + s.leave;
+                const actualAttendance = s.full - totalAbsent;
+                const percentage = s.full > 0 ? (actualAttendance / s.full) * 100 : 0;
+                const isEligible = percentage >= 80;
+
+                const row = tbody.insertRow();
+                row.className = isEligible ? 'hover:bg-green-50' : 'bg-red-50 hover:bg-red-100';
+
+                // คอลัมน์ที่
+                row.insertCell().textContent = index + 1;
+
+                // ข้อมูลนักเรียน
+                row.insertCell().textContent = s.name;
+                row.insertCell().textContent = s.subject;
+                row.insertCell().textContent = s.class;
+                row.insertCell().textContent = s.full.toFixed(2);
+                row.insertCell().textContent = totalAbsent.toFixed(2);
+                row.insertCell().textContent = actualAttendance.toFixed(2);
+
+                // ร้อยละ
+                const percentCell = row.insertCell();
+                percentCell.textContent = percentage.toFixed(2) + '%';
+                percentCell.className = `font-bold text-center ${isEligible ? 'text-green-600' : 'text-red-600'}`;
+                
+                // สถานะ
+                const statusCell = row.insertCell();
+                statusCell.textContent = isEligible ? 'มีสิทธิ์สอบ' : 'ไม่มีสิทธิ์สอบ';
+                statusCell.className = `text-center font-semibold ${isEligible ? 'text-green-700' : 'text-red-700'}`;
+
+                // ปุ่มลบ
+                const deleteCell = row.insertCell();
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'ลบ';
+                deleteButton.onclick = () => deleteStudent(s.id);
+                deleteButton.className = 'text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition';
+                deleteCell.appendChild(deleteButton);
+                deleteCell.className = 'text-center';
+            });
+        }
+
+        // ฟังก์ชันสร้างและส่งออกไฟล์ XLSX
+        function exportToXLSX() {
+            if (students.length === 0) {
+                showStatus('ไม่พบข้อมูลนักเรียนสำหรับส่งออก กรุณาเพิ่มรายชื่อนักเรียนก่อน!');
+                return;
+            }
+
+            // ตรวจสอบและบันทึกข้อมูลพื้นฐานอีกครั้งก่อนส่งออก
+            const currentConfig = saveConfigs();
+
+            // 1. เตรียมข้อมูลรายงาน (Header & Metadata)
+            const dateStr = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            const reportHeader = [
+                ['แบบแจ้งรายชื่อนักเรียนไม่มีสิทธิ์สอบ'],
+                [currentConfig.schoolName],
+                [`วันที่ ${dateStr}`],
+                ['เรื่อง แจ้งรายชื่อนักเรียนไม่มีสิทธิ์สอบ'],
+                [`เรียน ผู้อำนวยการ${currentConfig.schoolName}`],
+                [`การสำรวจนักเรียนไม่มีสิทธิ์สอบ มีเวลาเรียนไม่ถึงร้อยละ 80 ภาคเรียนที่ ${currentConfig.semester}`],
+                [`ปีการศึกษา ${currentConfig.academicYear} ${currentConfig.dateRange}`],
+                [''],
+                [' มีนักเรียนที่ไม่มีสิทธิ์สอบ ดังรายชื่อต่อไปนี้'],
+                ['']
+            ];
+
+            // 2. เตรียมข้อมูลตาราง (Data Table)
+            const tableHeader = [
+                'ที่',
+                'ชื่อ-สกุล',
+                'วิชา/รหัสวิชา',
+                'ชั้น',
+                'เวลาเรียนเต็ม ณ วันสำรวจ',
+                'ขาด/หนีเรียน',
+                'ลา',
+                'รวม',
+                'มาเรียน',
+                'ร้อยละ',
+                'สถานะสิทธิ์สอบ'
+            ];
+            
+            const studentData = students.map((s, index) => {
+                const totalAbsent = s.absent + s.leave;
+                const actualAttendance = s.full - totalAbsent;
+                const percentage = s.full > 0 ? (actualAttendance / s.full) * 100 : 0;
+                const status = percentage >= 80 ? 'มีสิทธิ์สอบ' : 'ไม่มีสิทธิ์สอบ';
+
+                return [
+                    index + 1,
+                    s.name,
+                    s.subject,
+                    s.class,
+                    s.full.toFixed(2),
+                    s.absent.toFixed(2),
+                    s.leave.toFixed(2),
+                    totalAbsent.toFixed(2),
+                    actualAttendance.toFixed(2),
+                    percentage.toFixed(2) + '%',
+                    status
+                ];
+            });
+
+            // 3. เตรียมส่วนท้าย (Signatures)
+            const signatureFooter = [
+                [''],
+                ['จึงเรียนมาเพื่อโปรดทราบ'],
+                [''],
+                ['', '', '', 'ลงชื่อ...................................................', ''],
+                ['', '', '', `( ${currentConfig.teacherName} )`, ''],
+                ['', '', '', 'ครูประจำรายวิชา', ''],
+                ['', '', '', '', ''],
+                ['', '', '', 'ลงชื่อ...................................................', ''],
+                ['', '', '', '( นางสาวโสภิดา ฤทธิศักดิ์ - หัวหน้ากลุ่มบริหารงานวิชาการ )', ''],
+                ['', '', '', '', ''],
+                ['', '', '', 'ลงชื่อ...................................................', ''],
+                ['', '', '', '( นางนภศมล พรหมรักษา - รองผู้อำนวยการ )', ''],
+                ['', '', '', '', ''],
+                ['', '', '', 'ลงชื่อ...................................................', ''],
+                ['', '', '', '( นายนพดล อินมา - ผู้อำนวยการโรงเรียน )', '']
+            ];
+
+            // รวมข้อมูลทั้งหมด
+            const worksheetData = [
+                ...reportHeader,
+                tableHeader,
+                ...studentData,
+                ...signatureFooter
+            ];
+
+            // 4. สร้าง Worksheet และ Workbook
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "รายงานนักเรียน");
+
+            // ปรับความกว้างคอลัมน์ (Optional)
+            ws['!cols'] = [
+                { wch: 5 },  // ที่
+                { wch: 30 }, // ชื่อ-สกุล
+                { wch: 18 }, // วิชา/รหัสวิชา
+                { wch: 10 }, // ชั้น
+                { wch: 15 }, // เวลาเรียนเต็ม
+                { wch: 15 }, // ขาด/หนีเรียน
+                { wch: 10 }, // ลา
+                { wch: 10 }, // รวม
+                { wch: 10 }, // มาเรียน
+                { wch: 10 }, // ร้อยละ
+                { wch: 15 }  // สถานะ
+            ];
+
+            // 5. ดาวน์โหลดไฟล์
+            const filename = `รายงานไม่มีสิทธิ์สอบ_${currentConfig.semester}_${currentConfig.academicYear}_${new Date().getTime()}.xlsx`;
+            XLSX.writeFile(wb, filename);
+
+            showStatus('ส่งออกไฟล์ XLSX เรียบร้อยแล้ว!', 'blue');
+        }
+
+        // โหลดข้อมูลพื้นฐานเมื่อหน้าเว็บโหลดเสร็จ
+        window.onload = loadConfigs;
+    </script>
+</body>
+</html>
