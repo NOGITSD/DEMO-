@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mind Map คลื่นแม่เหล็กไฟฟ้า</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1b3b8b;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #555;
+    }
+
+    /* โครง mind map แบบต้นไม้แนวตั้ง */
+    .mindmap {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .node {
+      position: relative;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin: 8px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      border-left: 4px solid #1b3b8b;
+    }
+
+    .node.main {
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: #1b3b8b;
+      color: white;
+      border-left: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .node > .title {
+      font-weight: 600;
+      color: #1b3b8b;
+      margin-bottom: 2px;
+    }
+
+    .node.main > .title {
+      color: #fff;
+    }
+
+    .node .content {
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    .children {
+      margin-left: 35px;
+      border-left: 2px dashed #c5cbe9;
+      padding-left: 15px;
+    }
+
+    /* เส้นเชื่อม */
+    .node::before {
+      content: "";
+      position: absolute;
+      width: 15px;
+      border-bottom: 2px dashed #c5cbe9;
+      left: -17px;
+      top: 18px;
+    }
+
+    .node.main::before {
+      content: none;
+    }
+
+    /* ให้หัวข้อใหญ่แต่ละกลุ่มมีสีต่างกันเล็กน้อย */
+    .group-1 { border-left-color: #f39c12; }
+    .group-2 { border-left-color: #27ae60; }
+    .group-3 { border-left-color: #e74c3c; }
+    .group-4 { border-left-color: #9b59b6; }
+
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: #ecf0ff;
+      color: #1b3b8b;
+      margin-left: 4px;
+    }
+
+    ul {
+      margin: 4px 0 0 18px;
+      padding: 0;
+    }
+    ul li {
+      font-size: 0.85rem;
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Mind Map คลื่นแม่เหล็กไฟฟ้า</h1>
+<div class="subtitle">สรุปจากบทที่ 18 คลื่นแม่เหล็กไฟฟ้า (คลื่นวิทยุถึงรังสีแกมมา)</div>
+
+<div class="mindmap">
+
+  <!-- โหนดกลาง -->
+  <div class="node main">
+    <div class="title">คลื่นแม่เหล็กไฟฟ้า</div>
+    <div class="content">
+      เกิดจากการเปลี่ยนแปลงของสนามไฟฟ้าและสนามแม่เหล็ก เคลื่อนที่ได้ในสุญญากาศด้วยความเร็ว
+      3 × 10<sup>8</sup> เมตร/วินาที
+    </div>
+  </div>
+
+  <!-- 1. ทฤษฎี / ภาพรวม -->
+  <div class="children">
+    <div class="node group-1">
+      <div class="title">1. คุณสมบัติพื้นฐาน</div>
+      <div class="content">
+        <ul>
+          <li>เป็นคลื่นตามขวาง (สนามไฟฟ้าตั้งฉากกับสนามแม่เหล็ก)</li>
+          <li>ไม่ต้องอาศัยตัวกลางในการเคลื่อนที่</li>
+          <li>ทุกชนิดในสเปกตรัมมีความเร็วเท่ากันในสุญญากาศ (3×10<sup>8</sup> m/s)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 2. สเปกตรัม -->
+    <div class="node group-2">
+      <div class="title">2. สเปกตรัมของคลื่นแม่เหล็กไฟฟ้า</div>
+      <div class="content">
+        เรียงจากความถี่ต่ำ → สูง (ความยาวคลื่นยาว → สั้น)
+        <ul>
+          <li>คลื่นวิทยุ → โทรทัศน์ → ไมโครเวฟ/เรดาร์ → อินฟราเรด → แสงที่มองเห็น → อัลตราไวโอเลต → รังสีเอกซ์ → รังสีแกมมา</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 3. แต่ละช่วงคลื่น -->
+    <div class="node group-3">
+      <div class="title">3. ช่วงคลื่นต่าง ๆ ในสเปกตรัม</div>
+      <div class="content">
+
+        <div class="children">
+
+          <!-- คลื่นวิทยุ -->
+          <div class="node">
+            <div class="title">3.1 คลื่นวิทยุ (Radio wave) <span class="badge">10⁶–10⁹ Hz</span></div>
+            <div class="content">
+              <ul>
+                <li>แหล่งกำเนิด: เสาอากาศวิทยุ สถานีวิทยุ</li>
+                <li>สมบัติ: ความยาวคลื่นยาวมาก สะท้อนชั้นไอโอโนสเฟียร์ได้ (โดยเฉพาะ AM)</li>
+                <li>ประโยชน์:
+                  <ul>
+                    <li>ใช้ในการกระจายเสียงระบบ A.M. และ F.M.</li>
+                    <li>การสื่อสารวิทยุสื่อสาร</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- คลื่นโทรทัศน์ -->
+          <div class="node">
+            <div class="title">3.2 คลื่นโทรทัศน์ <span class="badge">~10⁸ Hz</span></div>
+            <div class="content">
+              <ul>
+                <li>ใช้ส่งสัญญาณภาพและเสียงไปยังเครื่องรับโทรทัศน์</li>
+                <li>ภาพส่งด้วยระบบ A.M. เสียงส่งด้วยระบบ F.M.</li>
+                <li>ใช้คลื่นใกล้เคียงกับคลื่นวิทยุ แต่จัดช่องความถี่เฉพาะ</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- ไมโครเวฟ / เรดาร์ -->
+          <div class="node">
+            <div class="title">3.3 คลื่นไมโครเวฟ และ เรดาร์ (Microwave / Radar) <span class="badge">10⁹–3×10¹¹ Hz</span></div>
+            <div class="content">
+              <ul>
+                <li>ใช้ในเตาไมโครเวฟ ทำให้น้ำในอาหารสั่น → เกิดความร้อน</li>
+                <li>ใช้ในระบบเรดาร์ ตรวจจับระยะและตำแหน่งของวัตถุ</li>
+                <li>ใช้ในการสื่อสารผ่านดาวเทียม และโทรศัพท์มือถือบางระบบ</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- อินฟราเรด -->
+          <div class="node">
+            <div class="title">3.4 รังสีอินฟราเรด (Infrared) <span class="badge">10¹¹–10¹⁴ Hz</span></div>
+            <div class="content">
+              <ul>
+                <li>เกิดจากวัตถุที่มีอุณหภูมิสูงกว่าศูนย์องศาสัมบูรณ์</li>
+                <li>ประโยชน์:
+                  <ul>
+                    <li>กล้องถ่ายภาพความร้อน</li>
+                    <li>รีโมตทีวี เครื่องใช้ไฟฟ้า</li>
+                    <li>การแพทย์ ฟื้นฟูกล้ามเนื้อด้วยความร้อน</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- แสงที่มองเห็น -->
+          <div class="node">
+            <div class="title">3.5 แสงที่ตาเห็น (Visible light) <span class="badge">~10¹⁴ Hz</span></div>
+            <div class="content">
+              <ul>
+                <li>ช่วงความยาวคลื่นประมาณ 400–700 นาโนเมตร</li>
+                <li>แหล่งกำเนิด: ดวงอาทิตย์ หลอดไฟ เลเซอร์</li>
+                <li>ใช้ในการมองเห็น การถ่ายภาพ กล้องจุลทรรศน์</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- อัลตราไวโอเลต -->
+          <div class="node">
+            <div class="title">3.6 รังสีอัลตราไวโอเลต (Ultraviolet) <span class="badge">10¹⁵–10¹⁸ Hz</span></div>
+            <div class="content">
+              <ul>
+                <li>มาจากดวงอาทิตย์เป็นหลัก (ส่วนใหญ่ถูกชั้นโอโซนดูดกลืน)</li>
+                <li>ประโยชน์:
+                  <ul>
+                    <li>ฆ่าเชื้อโรค ทำให้สารบางชนิดเรืองแสง</li>
+                    <li>ใช้ตรวจลายเซ็น ธนบัตร ปลอม</li>
+                  </ul>
+                </li>
+                <li>โทษ:
+                  <ul>
+                    <li>ทำลายเซลล์ผิวหนัง ตา → เสี่ยงมะเร็งผิวหนัง</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- รังสีเอกซ์ -->
+          <div class="node">
+            <div class="title">3.7 รังสีเอกซ์ (X-ray) <span class="badge">10¹⁶–10²¹ Hz</span></div>
+            <div class="content">
+              <ul>
+                <li>ทะลุผ่านเนื้อเยื่ออ่อนได้ดี แต่ถูกดูดกลืนโดยกระดูกและโลหะ</li>
+                <li>ประโยชน์:
+                  <ul>
+                    <li>ถ่ายภาพกระดูก ตรวจหารอยร้าวโลหะ</li>
+                    <li>ตรวจสอบสัมภาระในสนามบิน</li>
+                  </ul>
+                </li>
+                <li>โทษ:
+                  <ul>
+                    <li>ทำลายเซลล์ร่างกาย ถ้าได้รับมากเกินไปเสี่ยงมะเร็ง</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- รังสีแกมมา -->
+          <div class="node">
+            <div class="title">3.8 รังสีแกมมา (Gamma ray) <span class="badge">สูงกว่า X-ray</span></div>
+            <div class="content">
+              <ul>
+                <li>แหล่งกำเนิด: การสลายตัวของนิวเคลียสกัมมันตรังสี, ปฏิกิริยานิวเคลียร์</li>
+                <li>ประโยชน์:
+                  <ul>
+                    <li>รักษาโรคมะเร็ง (ฉายรังสี)</li>
+                    <li>ฆ่าเชื้อในอาหาร และอุปกรณ์ทางการแพทย์</li>
+                    <li>ปรับปรุงพันธุ์พืชในการเกษตร</li>
+                  </ul>
+                </li>
+                <li>โทษ:
+                  <ul>
+                    <li>อันตรายต่อเซลล์และสารพันธุกรรมสูงมาก อาจทำให้เกิดมะเร็งได้</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div><!-- end children of group-3 -->
+
+      </div>
+    </div>
+
+    <!-- 4. สรุปประโยชน์ / โทษรวม -->
+    <div class="node group-4">
+      <div class="title">4. สรุปประโยชน์และโทษของคลื่นแม่เหล็กไฟฟ้า</div>
+      <div class="content">
+        <ul>
+          <li><strong>ประโยชน์</strong> : การสื่อสาร วิทยุ โทรทัศน์ มือถือ ดาวเทียม เรดาร์ การแพทย์ ถ่ายภาพรังสี รักษามะเร็ง การเกษตร และอุตสาหกรรมต่าง ๆ</li>
+          <li><strong>โทษ</strong> : คลื่นพลังงานสูงเช่น UV, X-ray, Gamma สามารถทำลายเซลล์ ทำให้เกิดแผลไหม้ มะเร็ง หรือทำลายสารพันธุกรรมได้ หากได้รับมากเกินไป</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- end first children -->
+
+</div><!-- end mindmap -->
+
+</body>
+</html>
