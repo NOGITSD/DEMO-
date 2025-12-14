@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Math - Competition Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background: #1a1a2e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 12px 28px;
+            border: 3px solid #444;
+            background: #2a2a4a;
+            color: #aaa;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            border-color: #666;
+        }
+
+        .mode-btn.active {
+            background: #4a4a8a;
+            border-color: #7c7cff;
+            color: #fff;
+        }
+
+        .generate-btn {
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #00d4aa, #00a080);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .generate-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 25px rgba(0, 212, 170, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Main Display Area */
+        .game-display {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .game-display.visible {
+            display: flex;
+        }
+
+        /* Number Cards - Slot Machine Style */
+        .numbers-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .number-card {
+            width: 140px;
+            height: 180px;
+            background: linear-gradient(145deg, #fff, #e8e8e8);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 7rem;
+            color: #1a1a2e;
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            border: 4px solid #333;
+            overflow: hidden;
+        }
+
+        .number-card::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            height: 30%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), transparent);
+            border-radius: 12px 12px 50% 50%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Slot reel container */
+        .slot-reel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .slot-reel.spinning {
+            animation: none;
+        }
+
+        .slot-number {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Slot spinning glow effect */
+        .number-card.spinning {
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.8),
+                0 0 30px rgba(0, 212, 170, 0.5);
+            border-color: #00d4aa;
+        }
+
+        /* Target Answer */
+        .target-section {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.4s ease;
+        }
+
+        .target-section.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .target-label {
+            color: #888;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .target-box {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            padding: 20px 60px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(238, 90, 36, 0.4);
+        }
+
+        .target-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 8rem;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            line-height: 1;
+        }
+
+        /* Target slot animation */
+        .target-box.spinning {
+            animation: targetPulse 0.15s infinite;
+        }
+
+        @keyframes targetPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        /* Solution Section */
+        .solution-section {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .solution-section.visible {
+            opacity: 1;
+        }
+
+        .show-solution-btn {
+            padding: 12px 30px;
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 8px;
+            color: #aaa;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .show-solution-btn:hover {
+            background: #444;
+            border-color: #777;
+            color: #fff;
+        }
+
+        .solution-display {
+            display: none;
+            margin-top: 20px;
+            padding: 20px 40px;
+            background: #2a4a2a;
+            border: 2px solid #4a8a4a;
+            border-radius: 12px;
+        }
+
+        .solution-display.visible {
+            display: inline-block;
+        }
+
+        .solution-text {
+            color: #8f8;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .stats.visible {
+            opacity: 1;
+        }
+
+        .stat-item span {
+            color: #888;
+            font-weight: 600;
+        }
+
+        /* Fullscreen */
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #333;
+            border: 2px solid #555;
+            border-radius: 6px;
+            color: #aaa;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .fullscreen-btn:hover {
+            background: #444;
+            color: #fff;
+        }
+
+        body.fullscreen-mode {
+            background: #000;
+        }
+
+        body.fullscreen-mode .header,
+        body.fullscreen-mode .controls,
+        body.fullscreen-mode .stats {
+            display: none !important;
+        }
+
+        body.fullscreen-mode .solution-section {
+            margin-top: 40px;
+        }
+
+        body.fullscreen-mode .solution-text {
+            font-size: 3.5rem;
+        }
+
+        body.fullscreen-mode .game-display {
+            justify-content: center;
+            height: 100vh;
+        }
+
+        body.fullscreen-mode .numbers-row {
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        body.fullscreen-mode .number-card {
+            width: 180px;
+            height: 230px;
+            font-size: 9rem;
+        }
+
+        body.fullscreen-mode .slot-number {
+            height: 230px;
+        }
+
+        body.fullscreen-mode .target-box {
+            padding: 30px 80px;
+        }
+
+        body.fullscreen-mode .target-number {
+            font-size: 12rem;
+        }
+
+        /* Shortcuts */
+        .shortcuts {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        .shortcuts kbd {
+            background: #333;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+        }
+
+        /* Win animation */
+        @keyframes winFlash {
+
+            0%,
+            100% {
+                box-shadow: 0 10px 40px rgba(238, 90, 36, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 10px 60px rgba(238, 90, 36, 0.8), 0 0 40px rgba(255, 215, 0, 0.6);
+            }
+        }
+
+        .target-box.revealed {
+            animation: winFlash 0.5s ease 3;
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .number-card {
+                width: 80px;
+                height: 100px;
+                font-size: 4rem;
+            }
+
+            .slot-number {
+                height: 100px;
+            }
+
+            .target-number {
+                font-size: 5rem;
+            }
+
+            .target-box {
+                padding: 15px 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶ Fullscreen</button>
+
+    <div class="header">
+        <h1>⚡ FAST MATH</h1>
+    </div>
+
+    <div class="controls">
+        <button class="mode-btn active" data-mode="2">2 Digits (10-99)</button>
+        <button class="mode-btn" data-mode="3">3 Digits (100-999)</button>
+        <button class="generate-btn" id="generateBtn">▶ Generate</button>
+    </div>
+
+    <div class="game-display visible" id="gameDisplay">
+        <div class="numbers-row" id="numbersRow">
+            <div class="number-card">
+                <div class="slot-reel">
+                    <div class="slot-number">?</div>
+                </div>
+            </div>
+            <div class="number-card">
+                <div class="slot-reel">
+                    <div class="slot-number">?</div>
+                </div>
+            </div>
+            <div class="number-card">
+                <div class="slot-reel">
+                    <div class="slot-number">?</div>
+                </div>
+            </div>
+            <div class="number-card">
+                <div class="slot-reel">
+                    <div class="slot-number">?</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="target-section" id="targetSection">
+            <div class="target-label">= Target =</div>
+            <div class="target-box" id="targetBox">
+                <div class="target-number" id="targetNumber">?</div>
+            </div>
+        </div>
+
+        <div class="solution-section" id="solutionSection">
+            <button class="show-solution-btn" id="showSolutionBtn">Show Solution</button>
+            <div class="solution-display" id="solutionDisplay">
+                <div class="solution-text" id="solutionText"></div>
+            </div>
+        </div>
+
+        <div class="stats" id="statsSection">
+            <div class="stat-item">Solutions: <span id="solutionCount">0</span></div>
+            <div class="stat-item">Attempts: <span id="attemptsCount">0</span></div>
+        </div>
+    </div>
+
+    <div class="shortcuts">
+        <kbd>Space</kbd> Generate &nbsp; <kbd>S</kbd> Show Solution &nbsp; <kbd>F</kbd> Fullscreen
+    </div>
+
+    <script>
+        // State
+        let currentMode = 2;
+        let isGenerating = false;
+        let isFullscreen = false;
+
+        // DOM
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const generateBtn = document.getElementById('generateBtn');
+        const numbersRow = document.getElementById('numbersRow');
+        const targetSection = document.getElementById('targetSection');
+        const targetBox = document.getElementById('targetBox');
+        const targetNumber = document.getElementById('targetNumber');
+        const showSolutionBtn = document.getElementById('showSolutionBtn');
+        const solutionDisplay = document.getElementById('solutionDisplay');
+        const solutionText = document.getElementById('solutionText');
+        const solutionCount = document.getElementById('solutionCount');
+        const attemptsCount = document.getElementById('attemptsCount');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const solutionSection = document.getElementById('solutionSection');
+        const statsSection = document.getElementById('statsSection');
+
+        // Mode selection
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (isGenerating) return;
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = parseInt(btn.dataset.mode);
+            });
+        });
+
+        // Math functions
+        function permutations(arr) {
+            if (arr.length <= 1) return [arr];
+            const result = [];
+            for (let i = 0; i < arr.length; i++) {
+                const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+                for (const perm of permutations(rest)) {
+                    result.push([arr[i], ...perm]);
+                }
+            }
+            return result;
+        }
+
+        function operatorCombinations() {
+            const ops = ['+', '-', '*', '/'];
+            const result = [];
+            for (const a of ops) {
+                for (const b of ops) {
+                    for (const c of ops) {
+                        result.push([a, b, c]);
+                    }
+                }
+            }
+            return result;
+        }
+
+        function safeEval(a, op, b) {
+            switch (op) {
+                case '+': return a + b;
+                case '-': return a - b;
+                case '*': return a * b;
+                case '/': return b !== 0 ? a / b : NaN;
+            }
+        }
+
+        function calculate(nums, ops, structure) {
+            const [a, b, c, d] = nums;
+            const [op1, op2, op3] = ops;
+            let value, expr;
+
+            switch (structure) {
+                case 0:
+                    value = safeEval(safeEval(safeEval(a, op1, b), op2, c), op3, d);
+                    expr = `((${a} ${op1} ${b}) ${op2} ${c}) ${op3} ${d}`;
+                    break;
+                case 1:
+                    value = safeEval(safeEval(a, op1, safeEval(b, op2, c)), op3, d);
+                    expr = `(${a} ${op1} (${b} ${op2} ${c})) ${op3} ${d}`;
+                    break;
+                case 2:
+                    value = safeEval(safeEval(a, op1, b), op2, safeEval(c, op3, d));
+                    expr = `(${a} ${op1} ${b}) ${op2} (${c} ${op3} ${d})`;
+                    break;
+                case 3:
+                    value = safeEval(a, op1, safeEval(safeEval(b, op2, c), op3, d));
+                    expr = `${a} ${op1} ((${b} ${op2} ${c}) ${op3} ${d})`;
+                    break;
+                case 4:
+                    value = safeEval(a, op1, safeEval(b, op2, safeEval(c, op3, d)));
+                    expr = `${a} ${op1} (${b} ${op2} (${c} ${op3} ${d}))`;
+                    break;
+            }
+            return { value, expr };
+        }
+
+        function findAllResults(numbers) {
+            const results = new Map();
+            const perms = permutations(numbers);
+            const opCombos = operatorCombinations();
+            for (const perm of perms) {
+                for (const ops of opCombos) {
+                    for (let structure = 0; structure < 5; structure++) {
+                        const { value, expr } = calculate(perm, ops, structure);
+                        if (!isNaN(value) && isFinite(value) && Number.isInteger(value)) {
+                            if (!results.has(value)) {
+                                results.set(value, expr);
+                            }
+                        }
+                    }
+                }
+            }
+            return results;
+        }
+
+        function filterResults(results, mode) {
+            const filtered = new Map();
+            const [min, max] = mode === 2 ? [10, 99] : [100, 999];
+            for (const [value, expr] of results) {
+                if (value >= min && value <= max) {
+                    filtered.set(value, expr);
+                }
+            }
+            return filtered;
+        }
+
+        // Slot machine animation
+        async function animateSlot(cardIndex, finalNumber, delay) {
+            const card = numbersRow.children[cardIndex];
+            const reel = card.querySelector('.slot-reel');
+
+            card.classList.add('spinning');
+
+            // Spin through random numbers
+            const spinDuration = 800 + delay;
+            const spinInterval = 50;
+            const spinCount = Math.floor(spinDuration / spinInterval);
+
+            for (let i = 0; i < spinCount; i++) {
+                const randomNum = Math.floor(Math.random() * 10);
+                reel.innerHTML = `<div class="slot-number">${randomNum}</div>`;
+                await new Promise(r => setTimeout(r, spinInterval));
+            }
+
+            // Final number with bounce effect
+            reel.innerHTML = `<div class="slot-number">${finalNumber}</div>`;
+            card.classList.remove('spinning');
+
+            // Bounce effect
+            card.style.transform = 'scale(1.1)';
+            await new Promise(r => setTimeout(r, 100));
+            card.style.transform = 'scale(1)';
+        }
+
+        async function animateTarget(finalNumber) {
+            targetBox.classList.add('spinning');
+
+            const [min, max] = currentMode === 2 ? [10, 99] : [100, 999];
+            const spinDuration = 600;
+            const spinInterval = 60;
+            const spinCount = Math.floor(spinDuration / spinInterval);
+
+            for (let i = 0; i < spinCount; i++) {
+                const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+                targetNumber.textContent = randomNum;
+                await new Promise(r => setTimeout(r, spinInterval));
+            }
+
+            targetNumber.textContent = finalNumber;
+            targetBox.classList.remove('spinning');
+            targetBox.classList.add('revealed');
+
+            setTimeout(() => {
+                targetBox.classList.remove('revealed');
+            }, 1500);
+        }
+
+        // Main generate function
+        async function generate() {
+            if (isGenerating) return;
+            isGenerating = true;
+            generateBtn.disabled = true;
+
+            // Reset UI
+            solutionDisplay.classList.remove('visible');
+            showSolutionBtn.textContent = 'Show Solution';
+            targetSection.classList.remove('visible');
+            solutionSection.classList.remove('visible');
+            statsSection.classList.remove('visible');
+
+            // Initialize cards
+            numbersRow.innerHTML = `
+                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
+                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
+                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
+                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
+            `;
+
+            // Find valid numbers
+            let validResults = null;
+            let numbers = null;
+            let totalAttempts = 0;
+
+            while (!validResults || validResults.size === 0) {
+                totalAttempts++;
+                numbers = [
+                    Math.floor(Math.random() * 10),
+                    Math.floor(Math.random() * 10),
+                    Math.floor(Math.random() * 10),
+                    Math.floor(Math.random() * 10)
+                ];
+                const allResults = findAllResults(numbers);
+                validResults = filterResults(allResults, currentMode);
+                if (totalAttempts > 1000) {
+                    alert('Could not find valid numbers. Try again.');
+                    isGenerating = false;
+                    generateBtn.disabled = false;
+                    return;
+                }
+            }
+
+            // Pick random target
+            const validTargets = Array.from(validResults.keys());
+            const target = validTargets[Math.floor(Math.random() * validTargets.length)];
+            const solution = validResults.get(target);
+
+            // Count solutions
+            const allSolutions = [];
+            const perms = permutations(numbers);
+            const opCombos = operatorCombinations();
+            for (const perm of perms) {
+                for (const ops of opCombos) {
+                    for (let s = 0; s < 5; s++) {
+                        const { value, expr } = calculate(perm, ops, s);
+                        if (value === target) allSolutions.push(expr);
+                    }
+                }
+            }
+
+            // Animate slots (staggered)
+            const slotPromises = numbers.map((num, i) =>
+                animateSlot(i, num, i * 200)
+            );
+
+            await Promise.all(slotPromises);
+
+            // Small pause before target
+            await new Promise(r => setTimeout(r, 300));
+
+            // Show and animate target
+            targetSection.classList.add('visible');
+            await animateTarget(target);
+
+            // Show solution section and stats
+            await new Promise(r => setTimeout(r, 200));
+            solutionSection.classList.add('visible');
+            statsSection.classList.add('visible');
+
+            // Update stats
+            solutionText.textContent = solution + ' = ' + target;
+            solutionCount.textContent = allSolutions.length;
+            attemptsCount.textContent = totalAttempts;
+
+            isGenerating = false;
+            generateBtn.disabled = false;
+        }
+
+        // Solution toggle
+        showSolutionBtn.addEventListener('click', () => {
+            solutionDisplay.classList.toggle('visible');
+            showSolutionBtn.textContent = solutionDisplay.classList.contains('visible')
+                ? 'Hide Solution' : 'Show Solution';
+        });
+
+        // Fullscreen
+        function toggleFullscreen() {
+            isFullscreen = !isFullscreen;
+            document.body.classList.toggle('fullscreen-mode', isFullscreen);
+            fullscreenBtn.textContent = isFullscreen ? '✕ Exit' : '⛶ Fullscreen';
+
+            if (isFullscreen && document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (!isFullscreen && document.exitFullscreen) {
+                document.exitFullscreen().catch(() => { });
+            }
+        }
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+                generate();
+            } else if (e.code === 'KeyS') {
+                showSolutionBtn.click();
+            } else if (e.code === 'KeyF') {
+                toggleFullscreen();
+            } else if (e.code === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
+        });
+
+        generateBtn.addEventListener('click', generate);
+
+        // Initial state - ready to generate
+        targetSection.classList.remove('visible');
+    </script>
+</body>
+
+</html>
