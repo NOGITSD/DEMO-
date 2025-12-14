@@ -402,24 +402,290 @@
             animation: winFlash 0.5s ease 3;
         }
 
-        /* Responsive */
-        @media (max-width: 700px) {
+        /* Responsive - Tablet */
+        @media (max-width: 800px) {
+            body {
+                padding: 15px;
+            }
+
             .number-card {
-                width: 80px;
-                height: 100px;
-                font-size: 4rem;
+                width: 100px;
+                height: 130px;
+                font-size: 5rem;
             }
 
             .slot-number {
-                height: 100px;
+                height: 130px;
+            }
+
+            .numbers-row {
+                gap: 12px;
             }
 
             .target-number {
-                font-size: 5rem;
+                font-size: 6rem;
             }
 
             .target-box {
                 padding: 15px 40px;
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+                padding-top: 60px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .controls {
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .mode-btn {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .generate-btn {
+                padding: 14px 30px;
+                font-size: 1rem;
+                width: 100%;
+            }
+
+            .numbers-row {
+                gap: 8px;
+                margin-bottom: 25px;
+            }
+
+            .number-card {
+                width: 70px;
+                height: 90px;
+                font-size: 3.5rem;
+                border-radius: 12px;
+                border-width: 3px;
+            }
+
+            .slot-number {
+                height: 90px;
+            }
+
+            .target-section {
+                margin-bottom: 20px;
+            }
+
+            .target-label {
+                font-size: 1rem;
+                letter-spacing: 2px;
+            }
+
+            .target-box {
+                padding: 12px 30px;
+                border-radius: 12px;
+            }
+
+            .target-number {
+                font-size: 4rem;
+            }
+
+            .show-solution-btn {
+                padding: 12px 24px;
+                font-size: 0.95rem;
+            }
+
+            .solution-display {
+                padding: 15px 20px;
+                margin-top: 15px;
+            }
+
+            .solution-text {
+                font-size: 1.3rem;
+                letter-spacing: 1px;
+                word-break: break-all;
+            }
+
+            .stats {
+                gap: 20px;
+                font-size: 0.8rem;
+            }
+
+            .fullscreen-btn {
+                top: 10px;
+                right: 10px;
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+
+            .shortcuts {
+                display: none;
+            }
+        }
+
+        /* Responsive - Very Small Mobile */
+        @media (max-width: 360px) {
+            .number-card {
+                width: 60px;
+                height: 78px;
+                font-size: 3rem;
+            }
+
+            .slot-number {
+                height: 78px;
+            }
+
+            .target-number {
+                font-size: 3.5rem;
+            }
+
+            .target-box {
+                padding: 10px 25px;
+            }
+
+            .mode-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+
+            .solution-text {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Landscape Mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                margin-bottom: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                margin-bottom: 15px;
+            }
+
+            .numbers-row {
+                margin-bottom: 15px;
+                gap: 15px;
+            }
+
+            .number-card {
+                width: 70px;
+                height: 85px;
+                font-size: 3.5rem;
+            }
+
+            .slot-number {
+                height: 85px;
+            }
+
+            .target-section {
+                margin-bottom: 15px;
+            }
+
+            .target-box {
+                padding: 8px 25px;
+            }
+
+            .target-number {
+                font-size: 3rem;
+            }
+
+            .solution-section {
+                margin-top: 10px;
+            }
+
+            .stats {
+                margin-top: 15px;
+            }
+
+            .shortcuts {
+                display: none;
+            }
+        }
+
+        /* Mobile Fullscreen */
+        @media (max-width: 500px) {
+            body.fullscreen-mode {
+                padding: 10px;
+            }
+
+            body.fullscreen-mode .game-display {
+                height: auto;
+                min-height: 100vh;
+                padding: 20px 0;
+            }
+
+            body.fullscreen-mode .numbers-row {
+                gap: 10px;
+                margin-bottom: 30px;
+            }
+
+            body.fullscreen-mode .number-card {
+                width: 75px;
+                height: 95px;
+                font-size: 3.8rem;
+            }
+
+            body.fullscreen-mode .slot-number {
+                height: 95px;
+            }
+
+            body.fullscreen-mode .target-box {
+                padding: 15px 35px;
+            }
+
+            body.fullscreen-mode .target-number {
+                font-size: 5rem;
+            }
+
+            body.fullscreen-mode .solution-section {
+                margin-top: 25px;
+            }
+
+            body.fullscreen-mode .solution-text {
+                font-size: 1.4rem;
+            }
+
+            body.fullscreen-mode .fullscreen-btn {
+                top: 5px;
+                right: 5px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+
+            .mode-btn,
+            .generate-btn,
+            .show-solution-btn,
+            .fullscreen-btn {
+                min-height: 44px;
+            }
+
+            .generate-btn:hover {
+                transform: none;
+            }
+
+            .mode-btn:active {
+                transform: scale(0.98);
+            }
+
+            .generate-btn:active {
+                transform: scale(0.98);
             }
         }
     </style>
