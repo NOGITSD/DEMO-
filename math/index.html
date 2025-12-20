@@ -93,6 +93,156 @@
             transform: none;
         }
 
+        /* Timer Section */
+        .timer-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .timer-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        .timer-toggle input[type="checkbox"] {
+            display: none;
+        }
+
+        .timer-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px 16px;
+            background: #2a2a4a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .timer-toggle input:checked+label {
+            background: #4a3a6a;
+            border-color: #9c7cff;
+            color: #fff;
+        }
+
+        .timer-switch {
+            width: 40px;
+            height: 22px;
+            background: #444;
+            border-radius: 11px;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .timer-toggle input:checked+label .timer-switch {
+            background: #9c7cff;
+        }
+
+        .timer-switch::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .timer-toggle input:checked+label .timer-switch::after {
+            transform: translateX(18px);
+        }
+
+        .timer-display {
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .timer-display.active {
+            display: flex;
+        }
+
+        .timer-clock {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: #fff;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            padding: 10px 25px;
+            border-radius: 12px;
+            min-width: 160px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(238, 90, 36, 0.3);
+        }
+
+        .timer-clock.running {
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+
+        .timer-clock.stopped {
+            background: linear-gradient(135deg, #00d4aa, #00a080);
+            animation: none;
+        }
+
+        @keyframes timerPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 5px 20px rgba(238, 90, 36, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 5px 30px rgba(238, 90, 36, 0.6);
+            }
+        }
+
+        .timer-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timer-stop-btn {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .timer-stop-btn:hover {
+            background: #ff5252;
+            transform: scale(1.05);
+        }
+
+        .timer-stop-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Best Time */
+        .best-time {
+            color: #9c7cff;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        .best-time span {
+            font-weight: 700;
+        }
+
         /* Main Display Area */
         .game-display {
             display: none;
@@ -106,7 +256,7 @@
             display: flex;
         }
 
-        /* Number Cards - Slot Machine Style */
+        /* Number Cards */
         .numbers-row {
             display: flex;
             justify-content: center;
@@ -146,16 +296,11 @@
             pointer-events: none;
         }
 
-        /* Slot reel container */
         .slot-reel {
             display: flex;
             flex-direction: column;
             align-items: center;
             transition: transform 0.1s ease-out;
-        }
-
-        .slot-reel.spinning {
-            animation: none;
         }
 
         .slot-number {
@@ -166,7 +311,6 @@
             flex-shrink: 0;
         }
 
-        /* Slot spinning glow effect */
         .number-card.spinning {
             box-shadow:
                 0 10px 30px rgba(0, 0, 0, 0.3),
@@ -213,7 +357,6 @@
             line-height: 1;
         }
 
-        /* Target slot animation */
         .target-box.spinning {
             animation: targetPulse 0.15s infinite;
         }
@@ -332,6 +475,19 @@
             display: none !important;
         }
 
+        body.fullscreen-mode .timer-section {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99;
+            margin-bottom: 0;
+        }
+
+        body.fullscreen-mode .timer-toggle {
+            display: none;
+        }
+
         body.fullscreen-mode .solution-section {
             margin-top: 40px;
         }
@@ -368,6 +524,11 @@
             font-size: 12rem;
         }
 
+        body.fullscreen-mode .timer-clock {
+            font-size: 4rem;
+            padding: 15px 35px;
+        }
+
         /* Shortcuts */
         .shortcuts {
             position: fixed;
@@ -385,7 +546,7 @@
             border: 1px solid #555;
         }
 
-        /* Win animation */
+        /* Animations */
         @keyframes winFlash {
 
             0%,
@@ -400,6 +561,31 @@
 
         .target-box.revealed {
             animation: winFlash 0.5s ease 3;
+        }
+
+        /* 5 cards mode */
+        .numbers-row.five-cards .number-card {
+            width: 110px;
+            height: 140px;
+            font-size: 5.5rem;
+        }
+
+        .numbers-row.five-cards .slot-number {
+            height: 140px;
+        }
+
+        body.fullscreen-mode .numbers-row.five-cards {
+            gap: 20px;
+        }
+
+        body.fullscreen-mode .numbers-row.five-cards .number-card {
+            width: 140px;
+            height: 180px;
+            font-size: 7rem;
+        }
+
+        body.fullscreen-mode .numbers-row.five-cards .slot-number {
+            height: 180px;
         }
 
         /* Responsive - Tablet */
@@ -422,12 +608,28 @@
                 gap: 12px;
             }
 
+            .numbers-row.five-cards .number-card {
+                width: 80px;
+                height: 105px;
+                font-size: 4rem;
+            }
+
+            .numbers-row.five-cards .slot-number {
+                height: 105px;
+            }
+
             .target-number {
                 font-size: 6rem;
             }
 
             .target-box {
                 padding: 15px 40px;
+            }
+
+            .timer-clock {
+                font-size: 2.5rem;
+                padding: 8px 20px;
+                min-width: 130px;
             }
         }
 
@@ -460,6 +662,26 @@
                 width: 100%;
             }
 
+            .timer-section {
+                margin-bottom: 15px;
+            }
+
+            .timer-toggle label {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+
+            .timer-clock {
+                font-size: 2rem;
+                padding: 8px 16px;
+                min-width: 110px;
+            }
+
+            .timer-btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+
             .numbers-row {
                 gap: 8px;
                 margin-bottom: 25px;
@@ -475,6 +697,16 @@
 
             .slot-number {
                 height: 90px;
+            }
+
+            .numbers-row.five-cards .number-card {
+                width: 58px;
+                height: 75px;
+                font-size: 2.8rem;
+            }
+
+            .numbers-row.five-cards .slot-number {
+                height: 75px;
             }
 
             .target-section {
@@ -540,6 +772,16 @@
                 height: 78px;
             }
 
+            .numbers-row.five-cards .number-card {
+                width: 52px;
+                height: 68px;
+                font-size: 2.5rem;
+            }
+
+            .numbers-row.five-cards .slot-number {
+                height: 68px;
+            }
+
             .target-number {
                 font-size: 3.5rem;
             }
@@ -556,6 +798,11 @@
 
             .solution-text {
                 font-size: 1.1rem;
+            }
+
+            .timer-clock {
+                font-size: 1.8rem;
+                min-width: 100px;
             }
         }
 
@@ -577,6 +824,10 @@
                 margin-bottom: 15px;
             }
 
+            .timer-section {
+                margin-bottom: 10px;
+            }
+
             .numbers-row {
                 margin-bottom: 15px;
                 gap: 15px;
@@ -590,6 +841,16 @@
 
             .slot-number {
                 height: 85px;
+            }
+
+            .numbers-row.five-cards .number-card {
+                width: 60px;
+                height: 75px;
+                font-size: 3rem;
+            }
+
+            .numbers-row.five-cards .slot-number {
+                height: 75px;
             }
 
             .target-section {
@@ -627,6 +888,11 @@
                 height: auto;
                 min-height: 100vh;
                 padding: 20px 0;
+                padding-top: 80px;
+            }
+
+            body.fullscreen-mode .timer-section {
+                top: 10px;
             }
 
             body.fullscreen-mode .numbers-row {
@@ -642,6 +908,16 @@
 
             body.fullscreen-mode .slot-number {
                 height: 95px;
+            }
+
+            body.fullscreen-mode .numbers-row.five-cards .number-card {
+                width: 62px;
+                height: 80px;
+                font-size: 3.2rem;
+            }
+
+            body.fullscreen-mode .numbers-row.five-cards .slot-number {
+                height: 80px;
             }
 
             body.fullscreen-mode .target-box {
@@ -664,15 +940,20 @@
                 top: 5px;
                 right: 5px;
             }
+
+            body.fullscreen-mode .timer-clock {
+                font-size: 2.2rem;
+            }
         }
 
-        /* Touch-friendly improvements */
+        /* Touch-friendly */
         @media (hover: none) and (pointer: coarse) {
 
             .mode-btn,
             .generate-btn,
             .show-solution-btn,
-            .fullscreen-btn {
+            .fullscreen-btn,
+            .timer-btn {
                 min-height: 44px;
             }
 
@@ -680,10 +961,7 @@
                 transform: none;
             }
 
-            .mode-btn:active {
-                transform: scale(0.98);
-            }
-
+            .mode-btn:active,
             .generate-btn:active {
                 transform: scale(0.98);
             }
@@ -699,9 +977,24 @@
     </div>
 
     <div class="controls">
-        <button class="mode-btn active" data-mode="2">2 Digits (10-99)</button>
-        <button class="mode-btn" data-mode="3">3 Digits (100-999)</button>
+        <button class="mode-btn active" data-mode="2">2 Digits (4 ตัว)</button>
+        <button class="mode-btn" data-mode="3">3 Digits (5 ตัว)</button>
         <button class="generate-btn" id="generateBtn">▶ Generate</button>
+    </div>
+
+    <div class="timer-section">
+        <div class="timer-toggle">
+            <input type="checkbox" id="timerEnabled">
+            <label for="timerEnabled">
+                <div class="timer-switch"></div>
+                ⏱️ จับเวลา
+            </label>
+        </div>
+        <div class="timer-display" id="timerDisplay">
+            <div class="timer-clock" id="timerClock">00:00.00</div>
+            <button class="timer-btn timer-stop-btn" id="timerStopBtn" disabled>⏹️ หยุด</button>
+            <div class="best-time" id="bestTimeDisplay"></div>
+        </div>
     </div>
 
     <div class="game-display visible" id="gameDisplay">
@@ -749,7 +1042,8 @@
     </div>
 
     <div class="shortcuts">
-        <kbd>Space</kbd> Generate &nbsp; <kbd>S</kbd> Show Solution &nbsp; <kbd>F</kbd> Fullscreen
+        <kbd>Space</kbd> Generate &nbsp; <kbd>S</kbd> Show Solution &nbsp; <kbd>T</kbd> หยุดเวลา &nbsp; <kbd>F</kbd>
+        Fullscreen
     </div>
 
     <script>
@@ -757,6 +1051,13 @@
         let currentMode = 2;
         let isGenerating = false;
         let isFullscreen = false;
+
+        // Timer State
+        let timerEnabled = false;
+        let timerRunning = false;
+        let timerStartTime = 0;
+        let timerInterval = null;
+        let bestTimes = { 2: null, 3: null };
 
         // DOM
         const modeBtns = document.querySelectorAll('.mode-btn');
@@ -774,6 +1075,94 @@
         const solutionSection = document.getElementById('solutionSection');
         const statsSection = document.getElementById('statsSection');
 
+        // Timer DOM
+        const timerEnabledCheckbox = document.getElementById('timerEnabled');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerClock = document.getElementById('timerClock');
+        const timerStopBtn = document.getElementById('timerStopBtn');
+        const bestTimeDisplay = document.getElementById('bestTimeDisplay');
+
+        // Timer functions
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const centiseconds = Math.floor((ms % 1000) / 10);
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (!timerEnabled) return;
+            timerStartTime = Date.now();
+            timerRunning = true;
+            timerStopBtn.disabled = false;
+            timerClock.classList.add('running');
+            timerClock.classList.remove('stopped');
+
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - timerStartTime;
+                timerClock.textContent = formatTime(elapsed);
+            }, 10);
+        }
+
+        function stopTimer() {
+            if (!timerRunning) return;
+
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerStopBtn.disabled = true;
+            timerClock.classList.remove('running');
+            timerClock.classList.add('stopped');
+
+            const elapsed = Date.now() - timerStartTime;
+            timerClock.textContent = formatTime(elapsed);
+
+            // Check for best time
+            if (bestTimes[currentMode] === null || elapsed < bestTimes[currentMode]) {
+                bestTimes[currentMode] = elapsed;
+                updateBestTimeDisplay();
+                // Save to localStorage
+                localStorage.setItem('fastmath_best_' + currentMode, elapsed);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerClock.textContent = '00:00.00';
+            timerClock.classList.remove('running', 'stopped');
+            timerStopBtn.disabled = true;
+        }
+
+        function updateBestTimeDisplay() {
+            if (bestTimes[currentMode] !== null) {
+                bestTimeDisplay.innerHTML = `🏆 Best: <span>${formatTime(bestTimes[currentMode])}</span>`;
+            } else {
+                bestTimeDisplay.innerHTML = '';
+            }
+        }
+
+        // Load best times from localStorage
+        function loadBestTimes() {
+            const best2 = localStorage.getItem('fastmath_best_2');
+            const best3 = localStorage.getItem('fastmath_best_3');
+            if (best2) bestTimes[2] = parseInt(best2);
+            if (best3) bestTimes[3] = parseInt(best3);
+            updateBestTimeDisplay();
+        }
+
+        // Timer toggle
+        timerEnabledCheckbox.addEventListener('change', () => {
+            timerEnabled = timerEnabledCheckbox.checked;
+            timerDisplay.classList.toggle('active', timerEnabled);
+            if (!timerEnabled) {
+                resetTimer();
+            }
+            updateBestTimeDisplay();
+        });
+
+        timerStopBtn.addEventListener('click', stopTimer);
+
         // Mode selection
         modeBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -781,6 +1170,7 @@
                 modeBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentMode = parseInt(btn.dataset.mode);
+                updateBestTimeDisplay();
             });
         });
 
@@ -797,14 +1187,14 @@
             return result;
         }
 
-        function operatorCombinations() {
+        function operatorCombinations(count) {
             const ops = ['+', '-', '*', '/'];
+            if (count === 1) return ops.map(o => [o]);
             const result = [];
-            for (const a of ops) {
-                for (const b of ops) {
-                    for (const c of ops) {
-                        result.push([a, b, c]);
-                    }
+            const smaller = operatorCombinations(count - 1);
+            for (const op of ops) {
+                for (const combo of smaller) {
+                    result.push([op, ...combo]);
                 }
             }
             return result;
@@ -819,7 +1209,7 @@
             }
         }
 
-        function calculate(nums, ops, structure) {
+        function calculate4(nums, ops, structure) {
             const [a, b, c, d] = nums;
             const [op1, op2, op3] = ops;
             let value, expr;
@@ -849,14 +1239,83 @@
             return { value, expr };
         }
 
-        function findAllResults(numbers) {
+        function calculate5(nums, ops, structure) {
+            const [a, b, c, d, e] = nums;
+            const [op1, op2, op3, op4] = ops;
+            let value, expr;
+
+            switch (structure) {
+                case 0:
+                    value = safeEval(safeEval(safeEval(safeEval(a, op1, b), op2, c), op3, d), op4, e);
+                    expr = `((((${a} ${op1} ${b}) ${op2} ${c}) ${op3} ${d}) ${op4} ${e})`;
+                    break;
+                case 1:
+                    value = safeEval(safeEval(safeEval(a, op1, safeEval(b, op2, c)), op3, d), op4, e);
+                    expr = `(((${a} ${op1} (${b} ${op2} ${c})) ${op3} ${d}) ${op4} ${e})`;
+                    break;
+                case 2:
+                    value = safeEval(safeEval(safeEval(a, op1, b), op2, safeEval(c, op3, d)), op4, e);
+                    expr = `(((${a} ${op1} ${b}) ${op2} (${c} ${op3} ${d})) ${op4} ${e})`;
+                    break;
+                case 3:
+                    value = safeEval(safeEval(a, op1, safeEval(safeEval(b, op2, c), op3, d)), op4, e);
+                    expr = `((${a} ${op1} ((${b} ${op2} ${c}) ${op3} ${d})) ${op4} ${e})`;
+                    break;
+                case 4:
+                    value = safeEval(safeEval(a, op1, safeEval(b, op2, safeEval(c, op3, d))), op4, e);
+                    expr = `((${a} ${op1} (${b} ${op2} (${c} ${op3} ${d}))) ${op4} ${e})`;
+                    break;
+                case 5:
+                    value = safeEval(safeEval(safeEval(a, op1, b), op2, c), op3, safeEval(d, op4, e));
+                    expr = `(((${a} ${op1} ${b}) ${op2} ${c}) ${op3} (${d} ${op4} ${e}))`;
+                    break;
+                case 6:
+                    value = safeEval(safeEval(a, op1, safeEval(b, op2, c)), op3, safeEval(d, op4, e));
+                    expr = `((${a} ${op1} (${b} ${op2} ${c})) ${op3} (${d} ${op4} ${e}))`;
+                    break;
+                case 7:
+                    value = safeEval(safeEval(a, op1, b), op2, safeEval(safeEval(c, op3, d), op4, e));
+                    expr = `((${a} ${op1} ${b}) ${op2} ((${c} ${op3} ${d}) ${op4} ${e}))`;
+                    break;
+                case 8:
+                    value = safeEval(safeEval(a, op1, b), op2, safeEval(c, op3, safeEval(d, op4, e)));
+                    expr = `((${a} ${op1} ${b}) ${op2} (${c} ${op3} (${d} ${op4} ${e})))`;
+                    break;
+                case 9:
+                    value = safeEval(a, op1, safeEval(safeEval(safeEval(b, op2, c), op3, d), op4, e));
+                    expr = `(${a} ${op1} (((${b} ${op2} ${c}) ${op3} ${d}) ${op4} ${e}))`;
+                    break;
+                case 10:
+                    value = safeEval(a, op1, safeEval(safeEval(b, op2, safeEval(c, op3, d)), op4, e));
+                    expr = `(${a} ${op1} ((${b} ${op2} (${c} ${op3} ${d})) ${op4} ${e}))`;
+                    break;
+                case 11:
+                    value = safeEval(a, op1, safeEval(safeEval(b, op2, c), op3, safeEval(d, op4, e)));
+                    expr = `(${a} ${op1} ((${b} ${op2} ${c}) ${op3} (${d} ${op4} ${e})))`;
+                    break;
+                case 12:
+                    value = safeEval(a, op1, safeEval(b, op2, safeEval(safeEval(c, op3, d), op4, e)));
+                    expr = `(${a} ${op1} (${b} ${op2} ((${c} ${op3} ${d}) ${op4} ${e})))`;
+                    break;
+                case 13:
+                    value = safeEval(a, op1, safeEval(b, op2, safeEval(c, op3, safeEval(d, op4, e))));
+                    expr = `(${a} ${op1} (${b} ${op2} (${c} ${op3} (${d} ${op4} ${e}))))`;
+                    break;
+            }
+            return { value, expr };
+        }
+
+        function findAllResults(numbers, numCount) {
             const results = new Map();
             const perms = permutations(numbers);
-            const opCombos = operatorCombinations();
+            const opCombos = operatorCombinations(numCount - 1);
+            const structureCount = numCount === 4 ? 5 : 14;
+            const calcFn = numCount === 4 ? calculate4 : calculate5;
+
             for (const perm of perms) {
                 for (const ops of opCombos) {
-                    for (let structure = 0; structure < 5; structure++) {
-                        const { value, expr } = calculate(perm, ops, structure);
+                    for (let structure = 0; structure < structureCount; structure++) {
+                        const { value, expr } = calcFn(perm, ops, structure);
                         if (!isNaN(value) && isFinite(value) && Number.isInteger(value)) {
                             if (!results.has(value)) {
                                 results.set(value, expr);
@@ -879,14 +1338,13 @@
             return filtered;
         }
 
-        // Slot machine animation
+        // Slot animation
         async function animateSlot(cardIndex, finalNumber, delay) {
             const card = numbersRow.children[cardIndex];
             const reel = card.querySelector('.slot-reel');
 
             card.classList.add('spinning');
 
-            // Spin through random numbers
             const spinDuration = 800 + delay;
             const spinInterval = 50;
             const spinCount = Math.floor(spinDuration / spinInterval);
@@ -897,11 +1355,9 @@
                 await new Promise(r => setTimeout(r, spinInterval));
             }
 
-            // Final number with bounce effect
             reel.innerHTML = `<div class="slot-number">${finalNumber}</div>`;
             card.classList.remove('spinning');
 
-            // Bounce effect
             card.style.transform = 'scale(1.1)';
             await new Promise(r => setTimeout(r, 100));
             card.style.transform = 'scale(1)';
@@ -936,6 +1392,9 @@
             isGenerating = true;
             generateBtn.disabled = true;
 
+            // Reset timer
+            resetTimer();
+
             // Reset UI
             solutionDisplay.classList.remove('visible');
             showSolutionBtn.textContent = 'Show Solution';
@@ -943,28 +1402,22 @@
             solutionSection.classList.remove('visible');
             statsSection.classList.remove('visible');
 
-            // Initialize cards
-            numbersRow.innerHTML = `
-                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
-                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
-                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
-                <div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>
-            `;
+            const numCount = currentMode === 2 ? 4 : 5;
 
-            // Find valid numbers
+            const cardsHTML = Array(numCount).fill(
+                '<div class="number-card"><div class="slot-reel"><div class="slot-number">?</div></div></div>'
+            ).join('');
+            numbersRow.innerHTML = cardsHTML;
+            numbersRow.classList.toggle('five-cards', numCount === 5);
+
             let validResults = null;
             let numbers = null;
             let totalAttempts = 0;
 
             while (!validResults || validResults.size === 0) {
                 totalAttempts++;
-                numbers = [
-                    Math.floor(Math.random() * 10),
-                    Math.floor(Math.random() * 10),
-                    Math.floor(Math.random() * 10),
-                    Math.floor(Math.random() * 10)
-                ];
-                const allResults = findAllResults(numbers);
+                numbers = Array(numCount).fill(0).map(() => Math.floor(Math.random() * 10));
+                const allResults = findAllResults(numbers, numCount);
                 validResults = filterResults(allResults, currentMode);
                 if (totalAttempts > 1000) {
                     alert('Could not find valid numbers. Try again.');
@@ -974,44 +1427,42 @@
                 }
             }
 
-            // Pick random target
             const validTargets = Array.from(validResults.keys());
             const target = validTargets[Math.floor(Math.random() * validTargets.length)];
             const solution = validResults.get(target);
 
-            // Count solutions
             const allSolutions = [];
             const perms = permutations(numbers);
-            const opCombos = operatorCombinations();
+            const opCombos = operatorCombinations(numCount - 1);
+            const structureCount = numCount === 4 ? 5 : 14;
+            const calcFn = numCount === 4 ? calculate4 : calculate5;
+
             for (const perm of perms) {
                 for (const ops of opCombos) {
-                    for (let s = 0; s < 5; s++) {
-                        const { value, expr } = calculate(perm, ops, s);
-                        if (value === target) allSolutions.push(expr);
+                    for (let s = 0; s < structureCount; s++) {
+                        const { value } = calcFn(perm, ops, s);
+                        if (value === target) allSolutions.push(true);
                     }
                 }
             }
 
-            // Animate slots (staggered)
             const slotPromises = numbers.map((num, i) =>
-                animateSlot(i, num, i * 200)
+                animateSlot(i, num, i * 150)
             );
 
             await Promise.all(slotPromises);
-
-            // Small pause before target
             await new Promise(r => setTimeout(r, 300));
 
-            // Show and animate target
             targetSection.classList.add('visible');
             await animateTarget(target);
 
-            // Show solution section and stats
+            // Start timer after target is revealed
+            startTimer();
+
             await new Promise(r => setTimeout(r, 200));
             solutionSection.classList.add('visible');
             statsSection.classList.add('visible');
 
-            // Update stats
             solutionText.textContent = solution + ' = ' + target;
             solutionCount.textContent = allSolutions.length;
             attemptsCount.textContent = totalAttempts;
@@ -1049,6 +1500,8 @@
                 generate();
             } else if (e.code === 'KeyS') {
                 showSolutionBtn.click();
+            } else if (e.code === 'KeyT') {
+                stopTimer();
             } else if (e.code === 'KeyF') {
                 toggleFullscreen();
             } else if (e.code === 'Escape' && isFullscreen) {
@@ -1058,7 +1511,10 @@
 
         generateBtn.addEventListener('click', generate);
 
-        // Initial state - ready to generate
+        // Load best times on page load
+        loadBestTimes();
+
+        // Initial state
         targetSection.classList.remove('visible');
     </script>
 </body>
