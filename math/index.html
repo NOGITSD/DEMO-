@@ -1175,6 +1175,30 @@
         });
 
         // Math functions
+
+        // Factorial function (n!)
+        function factorial(n) {
+            if (n < 0 || !Number.isInteger(n)) return NaN;
+            if (n === 0 || n === 1) return 1;
+            if (n > 10) return NaN; // Limit to prevent huge numbers
+            let result = 1;
+            for (let i = 2; i <= n; i++) result *= i;
+            return result;
+        }
+
+        // Sigma function (sum from 1 to n)
+        function sigma(n) {
+            if (n < 0 || !Number.isInteger(n)) return NaN;
+            if (n > 100) return NaN; // Limit to prevent huge numbers
+            return (n * (n + 1)) / 2;
+        }
+
+        // Square root function
+        function sqrtSafe(n) {
+            if (n < 0) return NaN;
+            return Math.sqrt(n);
+        }
+
         function permutations(arr) {
             if (arr.length <= 1) return [arr];
             const result = [];
@@ -1187,6 +1211,7 @@
             return result;
         }
 
+        // Binary operators for combining values
         function operatorCombinations(count) {
             const ops = ['+', '-', '*', '/'];
             if (count === 1) return ops.map(o => [o]);
@@ -1200,6 +1225,35 @@
             return result;
         }
 
+        // Unary operators: '' = none, 'Σ' = sigma, '!' = factorial, '√' = sqrt
+        const unaryOps = ['', 'Σ', '!', '√'];
+
+        // Generate unary operator combinations for each number
+        function unaryOpCombinations(count) {
+            if (count === 1) return unaryOps.map(o => [o]);
+            const result = [];
+            const smaller = unaryOpCombinations(count - 1);
+            for (const op of unaryOps) {
+                for (const combo of smaller) {
+                    result.push([op, ...combo]);
+                }
+            }
+            return result;
+        }
+
+        // Apply unary operator to a number
+        function applyUnary(n, op) {
+            switch (op) {
+                case '': return { value: n, expr: `${n}` };
+                case 'Σ': return { value: sigma(n), expr: `Σ${n}` };
+                case '!': return { value: factorial(n), expr: `${n}!` };
+                case '√':
+                    const sqrtVal = sqrtSafe(n);
+                    return { value: sqrtVal, expr: `√${n}` };
+                default: return { value: n, expr: `${n}` };
+            }
+        }
+
         function safeEval(a, op, b) {
             switch (op) {
                 case '+': return a + b;
@@ -1207,99 +1261,102 @@
                 case '*': return a * b;
                 case '/': return b !== 0 ? a / b : NaN;
             }
+            return NaN;
         }
 
-        function calculate4(nums, ops, structure) {
-            const [a, b, c, d] = nums;
+        // Calculate with 4 numbers (receives {value, expr} objects)
+        function calculate4(transformed, ops, structure) {
+            const [a, b, c, d] = transformed;
             const [op1, op2, op3] = ops;
             let value, expr;
 
             switch (structure) {
                 case 0:
-                    value = safeEval(safeEval(safeEval(a, op1, b), op2, c), op3, d);
-                    expr = `((${a} ${op1} ${b}) ${op2} ${c}) ${op3} ${d}`;
+                    value = safeEval(safeEval(safeEval(a.value, op1, b.value), op2, c.value), op3, d.value);
+                    expr = `((${a.expr} ${op1} ${b.expr}) ${op2} ${c.expr}) ${op3} ${d.expr}`;
                     break;
                 case 1:
-                    value = safeEval(safeEval(a, op1, safeEval(b, op2, c)), op3, d);
-                    expr = `(${a} ${op1} (${b} ${op2} ${c})) ${op3} ${d}`;
+                    value = safeEval(safeEval(a.value, op1, safeEval(b.value, op2, c.value)), op3, d.value);
+                    expr = `(${a.expr} ${op1} (${b.expr} ${op2} ${c.expr})) ${op3} ${d.expr}`;
                     break;
                 case 2:
-                    value = safeEval(safeEval(a, op1, b), op2, safeEval(c, op3, d));
-                    expr = `(${a} ${op1} ${b}) ${op2} (${c} ${op3} ${d})`;
+                    value = safeEval(safeEval(a.value, op1, b.value), op2, safeEval(c.value, op3, d.value));
+                    expr = `(${a.expr} ${op1} ${b.expr}) ${op2} (${c.expr} ${op3} ${d.expr})`;
                     break;
                 case 3:
-                    value = safeEval(a, op1, safeEval(safeEval(b, op2, c), op3, d));
-                    expr = `${a} ${op1} ((${b} ${op2} ${c}) ${op3} ${d})`;
+                    value = safeEval(a.value, op1, safeEval(safeEval(b.value, op2, c.value), op3, d.value));
+                    expr = `${a.expr} ${op1} ((${b.expr} ${op2} ${c.expr}) ${op3} ${d.expr})`;
                     break;
                 case 4:
-                    value = safeEval(a, op1, safeEval(b, op2, safeEval(c, op3, d)));
-                    expr = `${a} ${op1} (${b} ${op2} (${c} ${op3} ${d}))`;
+                    value = safeEval(a.value, op1, safeEval(b.value, op2, safeEval(c.value, op3, d.value)));
+                    expr = `${a.expr} ${op1} (${b.expr} ${op2} (${c.expr} ${op3} ${d.expr}))`;
                     break;
             }
             return { value, expr };
         }
 
-        function calculate5(nums, ops, structure) {
-            const [a, b, c, d, e] = nums;
+        // Calculate with 5 numbers (receives {value, expr} objects)
+        function calculate5(transformed, ops, structure) {
+            const [a, b, c, d, e] = transformed;
             const [op1, op2, op3, op4] = ops;
             let value, expr;
 
             switch (structure) {
                 case 0:
-                    value = safeEval(safeEval(safeEval(safeEval(a, op1, b), op2, c), op3, d), op4, e);
-                    expr = `((((${a} ${op1} ${b}) ${op2} ${c}) ${op3} ${d}) ${op4} ${e})`;
+                    value = safeEval(safeEval(safeEval(safeEval(a.value, op1, b.value), op2, c.value), op3, d.value), op4, e.value);
+                    expr = `((((${a.expr} ${op1} ${b.expr}) ${op2} ${c.expr}) ${op3} ${d.expr}) ${op4} ${e.expr})`;
                     break;
                 case 1:
-                    value = safeEval(safeEval(safeEval(a, op1, safeEval(b, op2, c)), op3, d), op4, e);
-                    expr = `(((${a} ${op1} (${b} ${op2} ${c})) ${op3} ${d}) ${op4} ${e})`;
+                    value = safeEval(safeEval(safeEval(a.value, op1, safeEval(b.value, op2, c.value)), op3, d.value), op4, e.value);
+                    expr = `(((${a.expr} ${op1} (${b.expr} ${op2} ${c.expr})) ${op3} ${d.expr}) ${op4} ${e.expr})`;
                     break;
                 case 2:
-                    value = safeEval(safeEval(safeEval(a, op1, b), op2, safeEval(c, op3, d)), op4, e);
-                    expr = `(((${a} ${op1} ${b}) ${op2} (${c} ${op3} ${d})) ${op4} ${e})`;
+                    value = safeEval(safeEval(safeEval(a.value, op1, b.value), op2, safeEval(c.value, op3, d.value)), op4, e.value);
+                    expr = `(((${a.expr} ${op1} ${b.expr}) ${op2} (${c.expr} ${op3} ${d.expr})) ${op4} ${e.expr})`;
                     break;
                 case 3:
-                    value = safeEval(safeEval(a, op1, safeEval(safeEval(b, op2, c), op3, d)), op4, e);
-                    expr = `((${a} ${op1} ((${b} ${op2} ${c}) ${op3} ${d})) ${op4} ${e})`;
+                    value = safeEval(safeEval(a.value, op1, safeEval(safeEval(b.value, op2, c.value), op3, d.value)), op4, e.value);
+                    expr = `((${a.expr} ${op1} ((${b.expr} ${op2} ${c.expr}) ${op3} ${d.expr})) ${op4} ${e.expr})`;
                     break;
                 case 4:
-                    value = safeEval(safeEval(a, op1, safeEval(b, op2, safeEval(c, op3, d))), op4, e);
-                    expr = `((${a} ${op1} (${b} ${op2} (${c} ${op3} ${d}))) ${op4} ${e})`;
+                    value = safeEval(safeEval(a.value, op1, safeEval(b.value, op2, safeEval(c.value, op3, d.value))), op4, e.value);
+                    expr = `((${a.expr} ${op1} (${b.expr} ${op2} (${c.expr} ${op3} ${d.expr}))) ${op4} ${e.expr})`;
                     break;
                 case 5:
-                    value = safeEval(safeEval(safeEval(a, op1, b), op2, c), op3, safeEval(d, op4, e));
-                    expr = `(((${a} ${op1} ${b}) ${op2} ${c}) ${op3} (${d} ${op4} ${e}))`;
+                    value = safeEval(safeEval(safeEval(a.value, op1, b.value), op2, c.value), op3, safeEval(d.value, op4, e.value));
+                    expr = `(((${a.expr} ${op1} ${b.expr}) ${op2} ${c.expr}) ${op3} (${d.expr} ${op4} ${e.expr}))`;
                     break;
                 case 6:
-                    value = safeEval(safeEval(a, op1, safeEval(b, op2, c)), op3, safeEval(d, op4, e));
-                    expr = `((${a} ${op1} (${b} ${op2} ${c})) ${op3} (${d} ${op4} ${e}))`;
+                    value = safeEval(safeEval(a.value, op1, safeEval(b.value, op2, c.value)), op3, safeEval(d.value, op4, e.value));
+                    expr = `((${a.expr} ${op1} (${b.expr} ${op2} ${c.expr})) ${op3} (${d.expr} ${op4} ${e.expr}))`;
                     break;
                 case 7:
-                    value = safeEval(safeEval(a, op1, b), op2, safeEval(safeEval(c, op3, d), op4, e));
-                    expr = `((${a} ${op1} ${b}) ${op2} ((${c} ${op3} ${d}) ${op4} ${e}))`;
+                    value = safeEval(safeEval(a.value, op1, b.value), op2, safeEval(safeEval(c.value, op3, d.value), op4, e.value));
+                    expr = `((${a.expr} ${op1} ${b.expr}) ${op2} ((${c.expr} ${op3} ${d.expr}) ${op4} ${e.expr}))`;
                     break;
                 case 8:
-                    value = safeEval(safeEval(a, op1, b), op2, safeEval(c, op3, safeEval(d, op4, e)));
-                    expr = `((${a} ${op1} ${b}) ${op2} (${c} ${op3} (${d} ${op4} ${e})))`;
+                    value = safeEval(safeEval(a.value, op1, b.value), op2, safeEval(c.value, op3, safeEval(d.value, op4, e.value)));
+                    expr = `((${a.expr} ${op1} ${b.expr}) ${op2} (${c.expr} ${op3} (${d.expr} ${op4} ${e.expr})))`;
                     break;
                 case 9:
-                    value = safeEval(a, op1, safeEval(safeEval(safeEval(b, op2, c), op3, d), op4, e));
-                    expr = `(${a} ${op1} (((${b} ${op2} ${c}) ${op3} ${d}) ${op4} ${e}))`;
+                    value = safeEval(a.value, op1, safeEval(safeEval(safeEval(b.value, op2, c.value), op3, d.value), op4, e.value));
+                    expr = `(${a.expr} ${op1} (((${b.expr} ${op2} ${c.expr}) ${op3} ${d.expr}) ${op4} ${e.expr}))`;
                     break;
                 case 10:
-                    value = safeEval(a, op1, safeEval(safeEval(b, op2, safeEval(c, op3, d)), op4, e));
-                    expr = `(${a} ${op1} ((${b} ${op2} (${c} ${op3} ${d})) ${op4} ${e}))`;
+                    value = safeEval(a.value, op1, safeEval(safeEval(b.value, op2, safeEval(c.value, op3, d.value)), op4, e.value));
+                    expr = `(${a.expr} ${op1} ((${b.expr} ${op2} (${c.expr} ${op3} ${d.expr})) ${op4} ${e.expr}))`;
                     break;
                 case 11:
-                    value = safeEval(a, op1, safeEval(safeEval(b, op2, c), op3, safeEval(d, op4, e)));
-                    expr = `(${a} ${op1} ((${b} ${op2} ${c}) ${op3} (${d} ${op4} ${e})))`;
+                    value = safeEval(a.value, op1, safeEval(safeEval(b.value, op2, c.value), op3, safeEval(d.value, op4, e.value)));
+                    expr = `(${a.expr} ${op1} ((${b.expr} ${op2} ${c.expr}) ${op3} (${d.expr} ${op4} ${e.expr})))`;
                     break;
                 case 12:
-                    value = safeEval(a, op1, safeEval(b, op2, safeEval(safeEval(c, op3, d), op4, e)));
-                    expr = `(${a} ${op1} (${b} ${op2} ((${c} ${op3} ${d}) ${op4} ${e})))`;
+                    value = safeEval(a.value, op1, safeEval(b.value, op2, safeEval(safeEval(c.value, op3, d.value), op4, e.value)));
+                    expr = `(${a.expr} ${op1} (${b.expr} ${op2} ((${c.expr} ${op3} ${d.expr}) ${op4} ${e.expr})))`;
                     break;
                 case 13:
-                    value = safeEval(a, op1, safeEval(b, op2, safeEval(c, op3, safeEval(d, op4, e))));
-                    expr = `(${a} ${op1} (${b} ${op2} (${c} ${op3} (${d} ${op4} ${e}))))`;
+                    value = safeEval(a.value, op1, safeEval(b.value, op2, safeEval(c.value, op3, safeEval(d.value, op4, e.value))));
+                    expr = `(${a.expr} ${op1} (${b.expr} ${op2} (${c.expr} ${op3} (${d.expr} ${op4} ${e.expr}))))`;
                     break;
             }
             return { value, expr };
@@ -1308,17 +1365,40 @@
         function findAllResults(numbers, numCount) {
             const results = new Map();
             const perms = permutations(numbers);
-            const opCombos = operatorCombinations(numCount - 1);
+            const binaryOpCombos = operatorCombinations(numCount - 1);
             const structureCount = numCount === 4 ? 5 : 14;
             const calcFn = numCount === 4 ? calculate4 : calculate5;
 
+            // Generate limited unary combinations: 
+            // Only allow 0 or 1 unary operator per problem to prevent slowdown
+            const limitedUnaryOps = [
+                Array(numCount).fill(''),  // No unary ops
+            ];
+
+            // Add single unary op at each position
+            for (let pos = 0; pos < numCount; pos++) {
+                for (const op of ['Σ', '!', '√']) {
+                    const combo = Array(numCount).fill('');
+                    combo[pos] = op;
+                    limitedUnaryOps.push(combo);
+                }
+            }
+
             for (const perm of perms) {
-                for (const ops of opCombos) {
-                    for (let structure = 0; structure < structureCount; structure++) {
-                        const { value, expr } = calcFn(perm, ops, structure);
-                        if (!isNaN(value) && isFinite(value) && Number.isInteger(value)) {
-                            if (!results.has(value)) {
-                                results.set(value, expr);
+                for (const unaryOps of limitedUnaryOps) {
+                    // Apply unary operators to each number
+                    const transformed = perm.map((n, i) => applyUnary(n, unaryOps[i]));
+
+                    // Skip if any unary operation resulted in NaN
+                    if (transformed.some(t => isNaN(t.value))) continue;
+
+                    for (const ops of binaryOpCombos) {
+                        for (let structure = 0; structure < structureCount; structure++) {
+                            const { value, expr } = calcFn(transformed, ops, structure);
+                            if (!isNaN(value) && isFinite(value) && Number.isInteger(value)) {
+                                if (!results.has(value)) {
+                                    results.set(value, expr);
+                                }
                             }
                         }
                     }
